@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "ClaudeSync",
+  "version": "1.0",
+  "description": "Seamlessly manage and synchronize your Claude project files",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
+
