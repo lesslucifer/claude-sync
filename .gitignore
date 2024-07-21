@@ -5,8 +5,8 @@ node_modules/
 dist/
 
 # TypeScript compilation output
-*.js
-*.js.map
+dist/**/*.js
+dist/**/*.js.map
 
 # Editor directories and files
 .vscode/

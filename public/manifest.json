@@ -4,20 +4,31 @@
   "version": "1.0",
   "description": "Seamlessly manage and synchronize your Claude project files",
   "permissions": [
+    "tabs",
+    "activeTab",
     "storage",
-    "activeTab"
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "action": {
-    "default_popup": "popup.html"
-  },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "matches": [
+        "https://claude.ai/*",
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "script-src": "self",
+    "object-src": "self"
+  }
 }
-
