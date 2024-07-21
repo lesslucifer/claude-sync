@@ -7,18 +7,16 @@ const injectSyncButton = (): void => {
     const allUploadFileInputs = document.querySelectorAll('[data-testid="project-doc-upload"]');
     const uploadFileInput = allUploadFileInputs.length ? allUploadFileInputs[allUploadFileInputs.length - 1] : null
     const addContentButton = uploadFileInput?.nextElementSibling
-    console.log(`Project doc upload`, uploadFileInput)
     if (uploadFileInput && uploadFileInput.parentNode?.parentNode && addContentButton) {
       obs.disconnect(); // Stop observing once we find the button
-      
+
       projectSectionElem = uploadFileInput.parentNode?.parentElement
       const syncButton = document.createElement('button');
-      syncButton.textContent = 'Sync Folder';
+      syncButton.textContent = 'Sync File';
 
       syncButton.className = addContentButton.className; // Copy the class for consistent styling
-      syncButton.onclick = selectFolder;
+      syncButton.onclick = selectFile;
       addContentButton?.parentNode?.insertBefore(syncButton, addContentButton);
-      loadSyncedFolder(); // Load synced folder after injecting the button
     }
   });
 
@@ -29,22 +27,72 @@ const injectSyncButton = (): void => {
   });
 };
 
-const selectFolder = (): void => {
+const selectFile = (): void => {
   const input = document.createElement('input');
   input.type = 'file';
-  input.webkitdirectory = true;
-  
-  input.onchange = (event) => {
+
+  input.onchange = async (event) => {
     const files = (event.target as HTMLInputElement).files;
     if (files && files.length > 0) {
-      const folderPath = files[0].webkitRelativePath.split('/')[0];
-      console.log('Selected folder:', folderPath);
-      updateSyncStatus(folderPath);
-      saveSyncedFolder(folderPath);
+      const file = files[0];
+      await uploadFile(file);
     }
   };
 
   input.click();
+};
+
+const uploadFile = async (file: File): Promise<void> => {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const content = e.target?.result as string;
+    const projectId = window.location.pathname.split('/').pop();
+    const orgId = getOrganizationId();
+
+    if (!projectId || !orgId) {
+      console.error('Unable to determine project or organization ID');
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://claude.ai/api/organizations/${orgId}/projects/${projectId}/docs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add other headers as needed
+        },
+        body: JSON.stringify({
+          file_name: file.name,
+          content: content
+        })
+      });
+
+      if (response.ok) {
+        console.log('File uploaded successfully');
+        updateSyncStatus(file.name);
+      } else {
+        console.error('Failed to upload file:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    }
+  };
+
+  reader.readAsText(file);
+};
+
+const getOrganizationId = (): string | null => {
+  const scripts = document.getElementsByTagName('script');
+  for (const script of scripts) {
+    const content = script.textContent || script.innerText;
+    console.log(`getOrganizationId`, content)
+    const match = content.match(/\\"memberships\\":\[\{\\"organization\\":\{\\"uuid\\":\\"([^\\"]+)\\"/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  console.error('Unable to find organization ID in page scripts');
+  return null;
 };
 
 const updateSyncStatus = (path: string): void => {
@@ -82,3 +130,35 @@ const loadSyncedFolder = (): void => {
 };
 
 injectSyncButton();
+
+const forceReactRerender = (): void => {
+  const script = document.createElement('script');
+  script.textContent = `
+    (function() {
+      const root = document.getElementById('root') || document.body;
+      if (!root || !root._reactRootContainer) {
+        console.error('React root not found');
+        return;
+      }
+
+      const ReactDOM = root._reactRootContainer._internalRoot.current.child.stateNode.updater.renderer.reconciler.renderer.bundleType === 1 
+        ? root._reactRootContainer._internalRoot.current.child.stateNode.updater.renderer.reconciler.renderer.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactDOM 
+        : window.ReactDOM;
+
+      if (!ReactDOM) {
+        console.error('ReactDOM not found');
+        return;
+      }
+
+      const rootComponent = root._reactRootContainer._internalRoot.current.child.stateNode;
+      const rootProps = root._reactRootContainer._internalRoot.current.memoizedProps;
+
+      ReactDOM.unmountComponentAtNode(root);
+      ReactDOM.render(React.createElement(rootComponent.constructor, rootProps), root);
+
+      console.log('React application remounted');
+    })();
+  `;
+  document.head.appendChild(script);
+  document.head.removeChild(script);
+};
