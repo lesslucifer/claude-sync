@@ -1,8 +1,7 @@
 // Header.ts
 
-import { uploadFile } from "../apiUtils";
+import { selectAndUploadFile } from "../apiUtils";
 import { trackChange } from "../changeTracker";
-import { selectFile } from "./fileUtils";
 import { SyncIcon } from "./icons";
 
 export const createHeader = (): HTMLElement => {
@@ -33,9 +32,7 @@ const createAddButton = (): HTMLButtonElement => {
     addButton.textContent = 'Add File';
     addButton.onclick = async () => {
         try {
-            const file = await selectFile();
-            console.log('Add file', file)
-            await uploadFile(file);
+            await selectAndUploadFile()
             trackChange();
         } catch (err) {
             console.error(err);

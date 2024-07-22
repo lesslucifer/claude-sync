@@ -1,6 +1,7 @@
 import { getSyncedFiles } from './storageUtils';
 import { createSyncFileSection } from './components/SyncFileSection';
 import { addFileElement } from './components/FileList';
+import { startFileChecking } from './fileChecker';
 
 let projectSectionElem: Element | null;
 
@@ -17,6 +18,7 @@ const injectSyncFileSection = (): void => {
       projectSectionElem?.parentNode?.insertBefore(syncFileSection, projectSectionElem);
 
       loadSyncedFiles();
+      startFileChecking();
     }
   });
 

@@ -11,3 +11,20 @@ export function formatRelativeTime(date: string): string {
     if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
     return `${Math.floor(diffInSeconds / 31536000)} years ago`;
 }
+
+let orgId = ''
+
+export const getOrganizationId = (): string => {
+    if (!orgId) {
+        const scripts = document.getElementsByTagName('script');
+        for (const script of scripts) {
+            const content = script.textContent || script.innerText;
+            const match = content.match(/\\"memberships\\":\[\{\\"organization\\":\{\\"uuid\\":\\"([^\\"]+)\\"/);
+            if (match && match[1]) {
+                return match[1];
+            }
+        }
+    }
+
+    return orgId
+};

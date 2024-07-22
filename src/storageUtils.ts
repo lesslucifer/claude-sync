@@ -16,3 +16,9 @@ export const removeSyncedFile = (uuid: string): void => {
     delete syncedFiles[uuid];
     localStorage.setItem('syncedFiles', JSON.stringify(syncedFiles));
 };
+
+export const updateSyncedFile = (file: SyncedFile): void => {
+    const syncedFiles = getSyncedFiles();
+    syncedFiles[file.uuid] = file;
+    localStorage.setItem('syncedFiles', JSON.stringify(syncedFiles));
+};
