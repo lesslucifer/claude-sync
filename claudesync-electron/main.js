@@ -37,12 +37,19 @@ function runServer() {
     expressApp.use(cors(corsOptions));
     expressApp.use(express.json());
 
+    let openFileCounter = 1
     expressApp.get('/open-file', async (req, res) => {
         try {
+
+            console.log(`[Start] Open file`, openFileCounter)
             app?.setActivationPolicy?.('regular')
-            const result = await dialog.showOpenDialog(backgroundWindow, {
+            backgroundWindow?.focus()
+            
+            await new Promise(res => setTimeout(res, 250))
+            const result = await dialog.showOpenDialog( BrowserWindow.getFocusedWindow(), {
                 properties: ['openFile']
             });
+            console.log(`[End] Open file`, openFileCounter++)
 
             if (!result.canceled && result.filePaths.length > 0) {
                 const filePath = result.filePaths[0];

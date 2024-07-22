@@ -29,7 +29,7 @@ export const getOrganizationId = (): string => {
 
 export const getProjectId = () => {
     const projectId = window.location.pathname.split('/').pop();
-    return projectId
+    return projectId!
 }
 
 export const ERR_COVER_DEFAULT_TITLE = 'An unexpected error occurred';
