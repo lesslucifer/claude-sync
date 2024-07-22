@@ -1,5 +1,9 @@
 import { SyncedFile } from './types';
 
+export const storeAllSyncedFiles = (files: Record<string, SyncedFile>): void => {
+    localStorage.setItem('syncedFiles', JSON.stringify(files));
+};
+
 export const storeSyncedFile = (file: SyncedFile): void => {
     const syncedFiles = getSyncedFiles();
     syncedFiles[file.uuid] = file;
@@ -14,11 +18,5 @@ export const getSyncedFiles = (): Record<string, SyncedFile> => {
 export const removeSyncedFile = (uuid: string): void => {
     const syncedFiles = getSyncedFiles();
     delete syncedFiles[uuid];
-    localStorage.setItem('syncedFiles', JSON.stringify(syncedFiles));
-};
-
-export const updateSyncedFile = (file: SyncedFile): void => {
-    const syncedFiles = getSyncedFiles();
-    syncedFiles[file.uuid] = file;
     localStorage.setItem('syncedFiles', JSON.stringify(syncedFiles));
 };

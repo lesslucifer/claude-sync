@@ -2,7 +2,7 @@ const { app, BrowserWindow, dialog } = require('electron');
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
-const cors = require('cors'); // Add this line
+const cors = require('cors');
 
 let backgroundWindow;
 
@@ -95,7 +95,7 @@ function runServer() {
                     const stats = await fs.stat(file.path);
                     return {
                         id: file.id,
-                        lastModified: stats.mtime.toISOString(),
+                        lastModified: stats.mtime.valueOf(),
                         exists: true
                     };
                 } catch (error) {
@@ -117,7 +117,7 @@ function runServer() {
 }
 
 app.whenReady().then(() => {
-    hideFromDock();
+    hideFromDock(); 
     createBackgroundWindow();
     runServer();
 });

@@ -1,20 +1,22 @@
-import { SyncedFile } from './types';
-import { removeSyncedFile, storeSyncedFile } from './storageUtils';
-import { addFileElement, removeFileFromUI } from './components/FileList';
-import { getOrganizationId } from './helper';
+import { SyncedFile, SyncedFileStatus } from './types';
 
 export const API_PORT = 38451;
 
-export const selectFile = async (): Promise<File> => {
+export interface ILocalFile {
+  fileName: string,
+  fileContent: string,
+  filePath: string,
+}
+
+export const selectLocalFile = async (): Promise<ILocalFile> => {
   const response = await fetch(`http://127.0.0.1:${API_PORT}/open-file`);
   if (!response.ok) {
     throw new Error('Failed to open file');
   }
   return await response.json();
-  // await uploadFileContent(fileName, fileContent, filePath); // TODO
 }
 
-export const readFile = async (file: SyncedFile): Promise<{ exists: boolean, fileContent: string }> => {
+export const readLocalFile = async (file: SyncedFile): Promise<{ exists: boolean, fileContent: string }> => {
   const response = await fetch(`http://localhost:${API_PORT}/read-file?path=${encodeURIComponent(file.filePath)}`);
   if (!response.ok) {
     throw new Error('Failed to read file');
@@ -27,14 +29,14 @@ export const readFile = async (file: SyncedFile): Promise<{ exists: boolean, fil
   }
 };
 
-export const checkFiles = async (files: SyncedFile[]): Promise<{ [uuid: string]: string }> => {
+export const checkFileStatuses = async (files: Record<string, SyncedFile>): Promise<Record<string, SyncedFileStatus>> => {
   const response = await fetch(`http://localhost:${API_PORT}/check-files`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      files: files.map(file => ({
+      files: Object.values(files).map(file => ({
         id: file.uuid,
         path: file.filePath
       }))
@@ -51,9 +53,9 @@ export const checkFiles = async (files: SyncedFile[]): Promise<{ [uuid: string]:
     return m
   }, {})
 
-  return files.reduce((m: any, f) => {
+  return Object.values(files).reduce((m: Record<string, SyncedFileStatus>, f) => {
     const r = resultById[f.uuid]
-    m[f.uuid] = r?.exists === false ? 'deleted' : new Date(r?.lastModified ?? 0) > new Date(f.lastUpdated) ? 'changed' : 'synced'
+    m[f.uuid] = r?.exists === false ? 'deleted' : (r?.lastModified ?? 0) > f.lastUpdated ? 'changed' : 'synced'
     return m
   }, {})
 };

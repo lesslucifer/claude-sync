@@ -1,8 +1,8 @@
 // Header.ts
 
-import { selectAndUploadFile } from "../apiUtils";
-import { trackChange } from "../changeTracker";
+import { selectAndUploadFile } from "../appService";
 import { SyncIcon } from "./icons";
+import { createLoadingSpinner, runWithLoadingElement } from "./uiHelper";
 
 export const createHeader = (): HTMLElement => {
     const header = document.createElement('div');
@@ -30,14 +30,10 @@ const createAddButton = (): HTMLButtonElement => {
     const addButton = document.createElement('button');
     addButton.className = addButtonClasses;
     addButton.textContent = 'Add File';
-    addButton.onclick = async () => {
-        try {
-            await selectAndUploadFile()
-            trackChange();
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    
+    addButton.appendChild(createLoadingSpinner());
+
+    addButton.onclick = runWithLoadingElement(addButton, () => selectAndUploadFile())
 
     return addButton;
 };

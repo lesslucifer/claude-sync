@@ -1,46 +1,22 @@
 // fileChecker.ts
-import { getSyncedFiles, updateSyncedFile } from './storageUtils';
-import { API_PORT } from './apiUtils';
-import { checkFiles } from './fileUtils';
+import { getSyncedFiles, storeAllSyncedFiles } from './storageUtils';
+import { checkFileStatuses } from './fileUtils';
+import { resetFileElementContent } from './components/FileList';
 
 export const syncFileStatuses = async (): Promise<void> => {
     const files = getSyncedFiles()
-    const fileStatuses = checkFiles(Object.values(files));
+    const fileStatuses = await checkFileStatuses(files);
 
-    try {
-        const response = await fetch(`http://localhost:${API_PORT}/check-files`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ files }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to check files');
-        }
-
-        const results = await response.json();
-        results.forEach((result: any) => {
-            const file = syncedFiles[result.id];
-            if (file) {
-                if (!result.exists) {
-                    file.status = 'deleted';
-                } else if (new Date(result.lastModified) > new Date(file.lastUpdated)) {
-                    file.status = 'changed';
-                } else {
-                    file.status = 'synced';
-                }
-                updateSyncedFile(file);
-                updateFileStatus(file);
-            }
-        });
-    } catch (error) {
-        console.error('Error checking files:', error);
-    }
+    Object.values(files).forEach(f => {
+        const stt = fileStatuses[f.uuid] ?? 'synced'
+        f.status = stt
+        resetFileElementContent(f)
+    })
+    
+    storeAllSyncedFiles(files)
 };
 
 export const startFileChecking = (): void => {
-    setInterval(checkFiles, 60000); // Check every minute
-    checkFiles(); // Initial check
+    setInterval(syncFileStatuses, 2 * 60000); // Check every 2 minute
+    syncFileStatuses(); // Initial check
 };
