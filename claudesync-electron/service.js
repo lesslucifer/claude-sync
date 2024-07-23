@@ -1,4 +1,10 @@
-const { exec } = require('node:child_process')
+const { spawn, fork } = require('node:child_process')
 const path = require('path')
 
-exec(path.join(process.cwd(), "node_modules", ".bin", "electron.cmd") + " .")
+fork(path.join(process.cwd(), "node_modules", "electron", "cli.js"), ["."], {
+    shell: true,
+    detached: true,
+    windowsHide: false
+}).unref()
+
+process.exit()

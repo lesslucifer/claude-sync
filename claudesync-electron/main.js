@@ -1,29 +1,51 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, Tray, Menu } = require('electron');
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const cors = require('cors');
+const AutoLaunch = require('auto-launch');
 
-let backgroundWindow;
+let tray = null;
+let server = null;
 
-function createBackgroundWindow() {
-    backgroundWindow = new BrowserWindow({
-        show: false,
-        width: 0,
-        height: 0,
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
-        }
-    });
+const gotTheLock = app.requestSingleInstanceLock();
 
-    backgroundWindow.loadURL('about:blank');
+if (!gotTheLock) {
+    app.quit();
+    return process.exit()
 }
 
-function hideFromDock() {
-    if (process.platform === 'darwin') {
-        app.setActivationPolicy('accessory');
-    }
+function createTray() {
+    tray = new Tray(path.join(__dirname, 'tray-icon.png')); // Make sure to add a tray icon image
+    const contextMenu = Menu.buildFromTemplate([
+        {
+            label: 'Open', click: () => {
+                dialog.showOpenDialog({
+                    properties: ['openFile']
+                }).catch();
+            }
+        },
+        { label: 'Quit', click: () => app.quit() }
+    ]);
+    tray.setToolTip('ClaudeSync');
+    tray.setContextMenu(contextMenu);
+}
+
+function setAppIcon() {
+    const iconPath = path.join(__dirname, 'icon.png');
+    app.dock?.setIcon(iconPath); // For macOS
+    BrowserWindow.getAllWindows().forEach(win => win.setIcon(iconPath)); // For Windows and Linux
+}
+
+function setupAutoLaunch() {
+    const autoLauncher = new AutoLaunch({
+        name: 'ClaudeSync',
+        path: app.getPath('exe'),
+    });
+
+    autoLauncher.isEnabled().then((isEnabled) => {
+        if (!isEnabled) autoLauncher.enable();
+    });
 }
 
 function runServer() {
@@ -37,19 +59,14 @@ function runServer() {
     expressApp.use(cors(corsOptions));
     expressApp.use(express.json());
 
-    let openFileCounter = 1
+    let openFileCounter = 1;
     expressApp.get('/open-file', async (req, res) => {
         try {
-
-            console.log(`[Start] Open file`, openFileCounter)
-            app?.setActivationPolicy?.('regular')
-            backgroundWindow?.focus()
-            
-            await new Promise(res => setTimeout(res, 250))
-            const result = await dialog.showOpenDialog( BrowserWindow.getFocusedWindow(), {
+            console.log(`[Start] Open file`, openFileCounter);
+            const result = await dialog.showOpenDialog({
                 properties: ['openFile']
             });
-            console.log(`[End] Open file`, openFileCounter++)
+            console.log(`[End] Open file`, openFileCounter++);
 
             if (!result.canceled && result.filePaths.length > 0) {
                 const filePath = result.filePaths[0];
@@ -66,9 +83,6 @@ function runServer() {
             }
         } catch (error) {
             res.status(500).json({ error: error.message });
-        }
-        finally {
-            app?.setActivationPolicy?.('accessory')
         }
     });
 
@@ -118,19 +132,36 @@ function runServer() {
         }
     });
 
-    expressApp.listen(port, () => {
+    server = expressApp.listen(port, () => {
         console.log(`Express server running at http://localhost:${port}`);
     });
 }
 
-app.whenReady().then(() => {
-    hideFromDock(); 
-    createBackgroundWindow();
+app.on('ready', () => {
+    createTray();
+    setupAutoLaunch();
     runServer();
+    setAppIcon()
 });
 
-app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit();
+app.on('window-all-closed', (e) => {
+    e.preventDefault(); // Prevent the app from quitting
+});
+
+app.on('quit', () => {
+    if (server) {
+        server.close();
+    }
+});
+
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (tray) {
+        dialog.showMessageBox({
+            type: 'info',
+            title: 'ClaudeSync',
+            message: 'ClaudeSync is already running.',
+            buttons: ['OK']
+        });
     }
 });
