@@ -44,3 +44,18 @@ export const claudeDeleteFile = async (uuid: string): Promise<void> => {
     throw new Error(`Failed to delete file: ${await response.text()}`)
   }
 };
+
+export const fetchProjectDocs = async (): Promise<any[]> => {
+  const response = await fetch(`${projectAPIPath()}/docs`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (response.ok) {
+    return await response.json();
+  } else {
+    throw new Error('Failed to fetch project docs: ' + await response.text());
+  }
+};

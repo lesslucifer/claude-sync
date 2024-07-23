@@ -1,35 +1,35 @@
 export function formatRelativeTime(time: number): string {
-    const diffInSeconds = Math.floor((Date.now() - time) / 1000);
+  const diffInSeconds = Math.floor((Date.now() - time) / 1000);
 
-    if (diffInSeconds < 10) return `Just now`;
-    if (diffInSeconds < 60) return `Less than a minute ago`;
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-    if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
-    return `${Math.floor(diffInSeconds / 31536000)} years ago`;
+  if (diffInSeconds < 10) return `Just now`;
+  if (diffInSeconds < 60) return `Less than a minute ago`;
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`;
+  return `${Math.floor(diffInSeconds / 31536000)} years ago`;
 }
 
 let orgId = ''
 
 export const getOrganizationId = (): string => {
-    if (!orgId) {
-        const scripts = document.getElementsByTagName('script');
-        for (const script of scripts) {
-            const content = script.textContent || script.innerText;
-            const match = content.match(/\\"memberships\\":\[\{\\"organization\\":\{\\"uuid\\":\\"([^\\"]+)\\"/);
-            if (match && match[1]) {
-                return match[1];
-            }
-        }
+  if (!orgId) {
+    const scripts = document.getElementsByTagName('script');
+    for (const script of scripts) {
+      const content = script.textContent || script.innerText;
+      const match = content.match(/\\"memberships\\":\[\{\\"organization\\":\{\\"uuid\\":\\"([^\\"]+)\\"/);
+      if (match && match[1]) {
+        return match[1];
+      }
     }
+  }
 
-    return orgId
+  return orgId
 };
 
 export const getProjectId = () => {
-    const projectId = window.location.pathname.split('/').pop();
-    return projectId!
+  const projectId = window.location.pathname.split('/').pop();
+  return projectId!
 }
 
 export const ERR_COVER_DEFAULT_TITLE = 'An unexpected error occurred';
@@ -73,7 +73,7 @@ export function interpolateErrMessage(err: any, defaultMsg?: string): string {
   );
 }
 
-function showNotification(title: string, message: string): void {
+export function showNotification(title: string, message: string): void {
   console.log("[CLAUDESYNC ERR]", title, message)
   // chrome.notifications.create({
   //   type: 'basic',
@@ -88,8 +88,18 @@ export function getRandomToken() {
   crypto.getRandomValues(randomPool);
   var hex = '';
   for (var i = 0; i < randomPool.length; ++i) {
-      hex += randomPool[i].toString(16);
+    hex += randomPool[i].toString(16);
   }
   // E.g. db18458e2782b2b77e36769c569e263a53885a9944dd0a861e5064eac16f1a
   return hex;
+}
+
+export function showConfirmationDialog(title: string, message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (confirm(`${title}\n\n${message}`)) {
+      resolve(true);
+    } else {
+      resolve(false);
+    }
+  });
 }

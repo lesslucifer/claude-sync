@@ -4,8 +4,8 @@ export const createLoadingSpinner = (): HTMLDivElement => {
     return loadingSpinner;
 };
 
-export const runWithLoadingElement = <T = any>(elem: Element, fn: () => Promise<T>) => {
-    return async () => {
+export const runWithLoadingElement = <T extends (...args: any[]) => Promise<any>>(elem: Element, fn: T) => {
+    return <T>(async (...args: any[]) => {
         const spinner = elem.querySelector('div.loading-spinner')
 
         try {
@@ -17,7 +17,7 @@ export const runWithLoadingElement = <T = any>(elem: Element, fn: () => Promise<
             }
             spinner?.classList?.remove('hidden')
     
-            return await fn()
+            return await fn(...args)
         }
         finally {
             if (elem instanceof HTMLButtonElement) {
@@ -28,7 +28,7 @@ export const runWithLoadingElement = <T = any>(elem: Element, fn: () => Promise<
             }
             spinner?.classList?.add('hidden')
         }
-    }
+    })
 }
 
 // Add this style to your CSS or in a <style> tag in your HTML

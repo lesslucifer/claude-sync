@@ -6,7 +6,7 @@ export interface File {
     filePath: string;
 }
 
-export type SyncedFileStatus = 'synced' | 'changed' | 'deleted'
+export type SyncedFileStatus = 'synced' | 'changed' | 'deleted' | 'broken'
 
 export interface SyncedFile extends File {
     id: string;
