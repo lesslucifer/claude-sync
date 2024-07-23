@@ -6,6 +6,7 @@ const cors = require('cors');
 const AutoLaunch = require('auto-launch');
 
 let tray = null;
+let backgroundWindow = null
 let server = null;
 
 const gotTheLock = app.requestSingleInstanceLock();
@@ -15,14 +16,37 @@ if (!gotTheLock) {
     return process.exit()
 }
 
+function initWindow() {
+    backgroundWindow = new BrowserWindow({
+        show: false,
+        width: 0,
+        height: 0,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        }
+    });
+
+    backgroundWindow.loadURL('about:blank');
+    app?.setActivationPolicy?.('accessory')
+}
+
 function createTray() {
     tray = new Tray(path.join(__dirname, 'tray-icon.png')); // Make sure to add a tray icon image
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: 'Open', click: () => {
-                dialog.showOpenDialog({
-                    properties: ['openFile']
-                }).catch();
+            label: 'Open', click: async () => {
+                try {
+                    app?.setActivationPolicy?.('regular')
+                    backgroundWindow?.focus({ steal: true })
+                    app.focus({ steal: true })
+                    await dialog.showOpenDialog(backgroundWindow, {
+                        properties: ['openFile']
+                    }).catch();
+                }
+                finally {
+                    app?.setActivationPolicy?.('accessory')
+                }
             }
         },
         { label: 'Quit', click: () => app.quit() }
@@ -60,10 +84,14 @@ function runServer() {
     expressApp.use(express.json());
 
     let openFileCounter = 1;
+    app?.setActivationPolicy?.('regular')
     expressApp.get('/open-file', async (req, res) => {
         try {
             console.log(`[Start] Open file`, openFileCounter);
-            const result = await dialog.showOpenDialog({
+            app?.setActivationPolicy?.('regular')
+            backgroundWindow?.focus({ steal: true })
+            app.focus({ steal: true })
+            const result = await dialog.showOpenDialog(backgroundWindow, {
                 properties: ['openFile']
             });
             console.log(`[End] Open file`, openFileCounter++);
@@ -83,6 +111,9 @@ function runServer() {
             }
         } catch (error) {
             res.status(500).json({ error: error.message });
+        }
+        finally {
+            app?.setActivationPolicy?.('accessory')
         }
     });
 
@@ -138,6 +169,7 @@ function runServer() {
 }
 
 app.on('ready', () => {
+    initWindow()
     createTray();
     setupAutoLaunch();
     runServer();
@@ -155,7 +187,6 @@ app.on('quit', () => {
 });
 
 app.on('second-instance', (event, commandLine, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window.
     if (tray) {
         dialog.showMessageBox({
             type: 'info',

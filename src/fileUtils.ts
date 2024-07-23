@@ -37,7 +37,7 @@ export const checkFileStatuses = async (files: Record<string, SyncedFile>): Prom
     },
     body: JSON.stringify({
       files: Object.values(files).map(file => ({
-        id: file.uuid,
+        id: file.id,
         path: file.filePath
       }))
     }),
@@ -54,8 +54,8 @@ export const checkFileStatuses = async (files: Record<string, SyncedFile>): Prom
   }, {})
 
   return Object.values(files).reduce((m: Record<string, SyncedFileStatus>, f) => {
-    const r = resultById[f.uuid]
-    m[f.uuid] = r?.exists === false ? 'deleted' : (r?.lastModified ?? 0) > f.lastUpdated ? 'changed' : 'synced'
+    const r = resultById[f.id]
+    m[f.id] = r?.exists === false ? 'deleted' : (r?.lastModified ?? 0) > f.lastUpdated ? 'changed' : 'synced'
     return m
   }, {})
 };

@@ -8,7 +8,7 @@ export const syncFileStatuses = async (): Promise<void> => {
     const fileStatuses = await checkFileStatuses(files);
 
     Object.values(files).forEach(f => {
-        const stt = fileStatuses[f.uuid] ?? 'synced'
+        const stt = fileStatuses[f.id] ?? 'synced'
         f.status = stt
         resetFileElementContent(f)
     })

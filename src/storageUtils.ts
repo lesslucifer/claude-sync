@@ -1,4 +1,4 @@
-import { SyncedFile } from './types';
+import { createSyncedFile, SyncedFile } from './types';
 import { getProjectId } from './helper';
 
 const getStorageKey = (projectId: string): string => `syncedFiles_${projectId}`;
@@ -9,12 +9,14 @@ export const storeAllSyncedFiles = (files: Record<string, SyncedFile>): void => 
     localStorage.setItem(storageKey, JSON.stringify(files));
 };
 
-export const storeSyncedFile = (file: SyncedFile): void => {
+export const addSyncedFile = (file: Omit<SyncedFile, 'id'>): SyncedFile => {
     const projectId = getProjectId();
     const storageKey = getStorageKey(projectId);
     const syncedFiles = getSyncedFiles();
-    syncedFiles[file.uuid] = file;
+    const newFile = createSyncedFile(file);
+    syncedFiles[newFile.id] = newFile;
     localStorage.setItem(storageKey, JSON.stringify(syncedFiles));
+    return newFile;
 };
 
 export const getSyncedFiles = (): Record<string, SyncedFile> => {
@@ -24,20 +26,21 @@ export const getSyncedFiles = (): Record<string, SyncedFile> => {
     return syncedFiles ? JSON.parse(syncedFiles) : {};
 };
 
-export const removeSyncedFile = (uuid: string): void => {
+export const removeSyncedFile = (id: string): void => {
     const projectId = getProjectId();
     const storageKey = getStorageKey(projectId);
     const syncedFiles = getSyncedFiles();
-    delete syncedFiles[uuid];
+    delete syncedFiles[id];
     localStorage.setItem(storageKey, JSON.stringify(syncedFiles));
 };
 
-export const updateSyncedFile = (uuid: string, updates: Partial<SyncedFile>): void => {
+export const updateSyncedFile = (id: string, updates: Partial<SyncedFile>) => {
     const projectId = getProjectId();
     const storageKey = getStorageKey(projectId);
     const syncedFiles = getSyncedFiles();
-    if (syncedFiles[uuid]) {
-        syncedFiles[uuid] = { ...syncedFiles[uuid], ...updates };
+    if (syncedFiles[id]) {
+        syncedFiles[id] = { ...syncedFiles[id], ...updates };
         localStorage.setItem(storageKey, JSON.stringify(syncedFiles));
     }
+    return syncedFiles[id]
 };
