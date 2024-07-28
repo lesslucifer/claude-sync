@@ -10,6 +10,11 @@
     "scripting",
     "notifications"
   ],
+  "icons": {
+    "16": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
+  },
   "host_permissions": [
     "https://claude.ai/*"
   ],
@@ -19,17 +24,11 @@
   "content_scripts": [
     {
       "matches": [
-        "https://claude.ai/*",
-        "http://*/*",
-        "https://*/*"
+        "https://claude.ai/*"
       ],
       "js": [
         "content.js"
       ]
     }
-  ],
-  "content_security_policy": {
-    "script-src": "self",
-    "object-src": "self"
-  }
+  ]
 }
