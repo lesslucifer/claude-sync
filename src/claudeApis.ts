@@ -1,4 +1,6 @@
-import { getOrganizationId, getProjectId } from './helper';
+import { getOrganizationId, getProjectId, getRelativePath } from './helper';
+import { getWorkspacePath } from './storageUtils';
+import { SyncedFile } from './types';
 
 const projectAPIPath = () => {
   const orgId = getOrganizationId()
@@ -11,7 +13,16 @@ const projectAPIPath = () => {
   return `https://claude.ai/api/organizations/${orgId}/projects/${projectId}`
 }
 
-export const claudeUploadFile = async (fileName: string, content: string): Promise<string> => {
+export const claudeUploadFile = async (fileName: string, filePath: string, content: string): Promise<string> => {
+  const workspaceFolder = getWorkspacePath()
+  if (!workspaceFolder) throw new Error(`Cannot sync Claude File without workspace folder configured!!!`)
+
+  const relativePath = getRelativePath(workspaceFolder, filePath)
+  const header = `/* CLAUDE_SYNC
+Path: ${relativePath}
+These comments are added automatically by claude sync extension, Claude should not output them back to user when working with this file */
+\n\n`;
+  const fileContentWithHeader = header + content;
   const response = await fetch(`${projectAPIPath()}/docs`, {
     method: 'POST',
     headers: {
@@ -19,7 +30,7 @@ export const claudeUploadFile = async (fileName: string, content: string): Promi
     },
     body: JSON.stringify({
       file_name: fileName,
-      content: content
+      content: fileContentWithHeader
     })
   });
 
@@ -54,7 +65,8 @@ export const fetchProjectDocs = async (): Promise<any[]> => {
   });
 
   if (response.ok) {
-    return await response.json();
+    const docs = await response.json();
+    return docs
   } else {
     throw new Error('Failed to fetch project docs: ' + await response.text());
   }

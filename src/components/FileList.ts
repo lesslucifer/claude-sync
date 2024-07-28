@@ -1,8 +1,8 @@
 // FileList.ts
 
-import { deleteSyncFile, hardResyncFile, resyncFile } from '../appService';
+import { deleteSyncFile, hardDeleteFiles, resyncFile } from '../appService';
 import { formatRelativeTime } from '../helper';
-import { SyncedFile } from '../types';
+import { SyncedFile, SyncedFileStatus } from '../types';
 import { DeletedIcon, FileChangedIcon, ReloadIcon, TrashIcon } from './icons';
 import { createLoadingSpinner, runWithLoadingElement as runWithLoading } from './uiHelper';
 
@@ -17,7 +17,7 @@ export const addFileElement = (file: SyncedFile): void => {
   if (!fileList) return;
 
   const li = document.createElement('li');
-  resetFileElementContent(file, li)
+  resetFileElementContent(file, null, li)
   fileList.appendChild(li);
 };
 
@@ -25,11 +25,26 @@ export const getFileElement = (fileId: string): HTMLElement | undefined => {
   return document.querySelector(`li[id="${fileId}"]`) as HTMLElement
 }
 
-export const resetFileElementContent = (file: SyncedFile, elem?: HTMLElement) => {
-  elem ??= getFileElement(file.id)
+export const getAllFilesFromElement = (): SyncedFile[] => {
+  const elems = document.querySelectorAll("li.sycned-file-element")
+  const files: SyncedFile[] = []
+  elems.forEach(elem => {
+    if (!elem?.id || !elem?.getAttribute("uuid")) return
+    files.push({
+      fileName: elem.getAttribute("fileName") ?? '',
+      filePath: elem.getAttribute("filePath") ?? '',
+      lastUpdated: Number(elem.getAttribute("lastUpdated")),
+      status: (elem.getAttribute("status") as SyncedFileStatus) ?? 'synced',
+      uuid: elem.getAttribute("uuid") ?? '',
+    })
+  })
+  return files
+}
+
+export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null, elem?: HTMLElement) => {
+  elem ??= getFileElement(oldUuid ?? file.uuid)
   if (!elem) return
 
-  elem.className = 'overflow-hidden';
   elem.innerHTML = `
     <div class="group -mr-2 flex items-center gap-2 rounded-lg py-0.5 transition-colors lg:-mx-1 lg:pl-1 lg:pr-3 lg:hover:bg-bg-500/10">
       <div class="min-w-0 flex-1" title="Path: ${file.filePath}">
@@ -43,37 +58,42 @@ export const resetFileElementContent = (file: SyncedFile, elem?: HTMLElement) =>
         <div class="text-text-400 flex items-center gap-1 text-xs">Last sync: ${formatRelativeTime(file.lastUpdated)}</div>
       </div>
       <div class="transition-opacity group-hover:opacity-100 lg:opacity-0 flex items-center">
-        <button class="reload-file-btn inline-flex items-center justify-center relative shrink-0 ring-offset-2 ring-offset-bg-300 ring-accent-main-100 focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:drop-shadow-none text-text-200 transition-all font-styrene active:bg-bg-400 hover:bg-bg-500/40 hover:text-text-100 h-8 w-8 rounded-md active:scale-95 mr-2" aria-label="Reload file" file-id="${file.id}" data-filepath="${file.filePath}">
+        <button class="reload-file-btn inline-flex items-center justify-center relative shrink-0 ring-offset-2 ring-offset-bg-300 ring-accent-main-100 focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:drop-shadow-none text-text-200 transition-all font-styrene active:bg-bg-400 hover:bg-bg-500/40 hover:text-text-100 h-8 w-8 rounded-md active:scale-95 mr-2" aria-label="Reload file" file-id="${file.uuid}" data-filepath="${file.filePath}">
           ${ReloadIcon}
         </button>
-        <button class="delete-file-btn inline-flex items-center justify-center relative shrink-0 ring-offset-2 ring-offset-bg-300 ring-accent-main-100 focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:drop-shadow-none text-text-200 transition-all font-styrene active:bg-bg-400 hover:bg-bg-500/40 hover:text-text-100 h-8 w-8 rounded-md active:scale-95" aria-label="Remove from synced files" file-id="${file.id}">
+        <button class="delete-file-btn inline-flex items-center justify-center relative shrink-0 ring-offset-2 ring-offset-bg-300 ring-accent-main-100 focus-visible:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none disabled:drop-shadow-none text-text-200 transition-all font-styrene active:bg-bg-400 hover:bg-bg-500/40 hover:text-text-100 h-8 w-8 rounded-md active:scale-95" aria-label="Remove from synced files" file-id="${file.uuid}">
           ${TrashIcon}
         </button>
       </div>
     </div>
   `;
-  elem.id = file.id
+  elem.id = file.uuid
+  elem.className = 'overflow-hidden sycned-file-element';
+  elem.setAttribute("lastUpdated", file.lastUpdated.toString())
+  elem.setAttribute("filePath", file.filePath)
+  elem.setAttribute("status", file.status)
+  elem.setAttribute("fileName", file.fileName)
+  elem.setAttribute("uuid", file.uuid)
 
   const reloadButton = elem.querySelector('.reload-file-btn');
   if (reloadButton) {
-    reloadButton.addEventListener('click', async(event) => {
-      console.log('Reload', event)
-      if ((event as MouseEvent).ctrlKey || (event as MouseEvent).metaKey) {
-        runWithLoading(elem, () => hardResyncFile(file))();
-      } else {
-        runWithLoading(elem, () => resyncFile(file))();
-      }
+    reloadButton.addEventListener('click', async () => {
+      runWithLoading(elem, () => resyncFile(file))();
     });
   }
 
   const deleteButton = elem.querySelector('.delete-file-btn');
   if (deleteButton) {
-    deleteButton.addEventListener('click', runWithLoading(elem, () => {
-      return deleteSyncFile(file.id)
+    deleteButton.addEventListener('click', runWithLoading(elem, (event) => {
+      if ((event as MouseEvent).ctrlKey || (event as MouseEvent).metaKey) {
+        return hardDeleteFiles(file);
+      } else {
+        return deleteSyncFile(file)
+      }
     }));
   }
 }
 
-export const removeFileFromUI = (uuid: string): void => {
-  getFileElement(uuid)?.remove()
+export const removeFileFromUI = (fileId: string): void => {
+  getFileElement(fileId)?.remove()
 };

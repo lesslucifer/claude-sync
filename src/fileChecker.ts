@@ -1,21 +1,17 @@
 // fileChecker.ts
-import { getSyncedFiles, storeAllSyncedFiles, updateSyncedFile } from './storageUtils';
-import { checkFileStatuses } from './fileUtils';
-import { resetFileElementContent } from './components/FileList';
 import { fetchProjectDocs } from './claudeApis';
-import { SyncedFile } from './types';
+import { getAllFilesFromElement as getAllFilesFromUIElement, resetFileElementContent } from './components/FileList';
+import { checkFileStatuses } from './fileUtils';
 
 export const syncFileStatuses = async (): Promise<void> => {
-    const files = getSyncedFiles()
+    const files = getAllFilesFromUIElement()
     const fileStatuses = await checkFileStatuses(files);
 
-    Object.values(files).forEach(f => {
-        const stt = fileStatuses[f.id] ?? 'synced'
+    files.forEach(f => {
+        const stt = fileStatuses[f.uuid] ?? 'synced'
         f.status = stt
-        resetFileElementContent(f)
+        resetFileElementContent(f, f.uuid)
     })
-
-    storeAllSyncedFiles(files)
 };
 
 export const startFileChecking = (): void => {
@@ -26,20 +22,14 @@ export const startFileChecking = (): void => {
 export const checkForBrokenFiles = async (): Promise<void> => {
     try {
         const projectDocs = await fetchProjectDocs();
-        const syncedFiles = getSyncedFiles();
+        const syncedFiles = getAllFilesFromUIElement();
         const projectDocUuids = new Set(projectDocs.map(doc => doc.uuid));
 
-        let changed = false
         for (const file of Object.values(syncedFiles)) {
             if (!projectDocUuids.has(file.uuid)) {
                 file.status = 'broken'
-                resetFileElementContent(file)
-                changed = true
+                resetFileElementContent(file, file.uuid)
             }
-        }
-
-        if (changed) {
-            storeAllSyncedFiles(syncedFiles)
         }
     } catch (error) {
         console.error('Error checking for broken files:', error);
