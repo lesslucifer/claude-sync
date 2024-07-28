@@ -17,7 +17,7 @@ export const addFileElement = (file: SyncedFile): void => {
   if (!fileList) return;
 
   const li = document.createElement('li');
-  resetFileElementContent(file, li)
+  resetFileElementContent(file, null, li)
   fileList.appendChild(li);
 };
 
@@ -41,8 +41,8 @@ export const getAllFilesFromElement = (): SyncedFile[] => {
   return files
 }
 
-export const resetFileElementContent = (file: SyncedFile, elem?: HTMLElement) => {
-  elem ??= getFileElement(file.uuid)
+export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null, elem?: HTMLElement) => {
+  elem ??= getFileElement(oldUuid ?? file.uuid)
   if (!elem) return
 
   elem.innerHTML = `
@@ -70,7 +70,7 @@ export const resetFileElementContent = (file: SyncedFile, elem?: HTMLElement) =>
   elem.id = file.uuid
   elem.className = 'overflow-hidden sycned-file-element';
   elem.setAttribute("lastUpdated", file.lastUpdated.toString())
-  elem.setAttribute("path", file.filePath)
+  elem.setAttribute("filePath", file.filePath)
   elem.setAttribute("status", file.status)
   elem.setAttribute("fileName", file.fileName)
   elem.setAttribute("uuid", file.uuid)

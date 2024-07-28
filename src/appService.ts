@@ -26,7 +26,6 @@ export const getSyncedFilesFromClaude = async (): Promise<SyncedFile[]> => {
 
 export const loadSyncedFiles = async () => {
     const syncedFiles = await getSyncedFilesFromClaude();
-    console.log("[loadSyncedFiles]", syncedFiles)
     syncedFiles.forEach(file => addFileElement(file));
 }
 
@@ -57,6 +56,7 @@ export const resyncFile = errCover(async (file: SyncedFile) => {
 
     if (!newFileContent.exists || !newFileContent.fileContent) {
         await errCover(async () => {
+            const oldUuid = file.uuid
             const localFile = await selectLocalFile()
             const uuid = await claudeUploadFile(localFile.fileName, localFile.filePath, localFile.fileContent)
             claudeDeleteFile(file.uuid).catch()
@@ -64,7 +64,7 @@ export const resyncFile = errCover(async (file: SyncedFile) => {
             file.fileName = localFile.fileName
             file.uuid = uuid
             file.status = "synced"
-            resetFileElementContent(file)
+            resetFileElementContent(file, oldUuid)
             trackChange()
         })()
         return
@@ -72,12 +72,13 @@ export const resyncFile = errCover(async (file: SyncedFile) => {
 
     await claudeDeleteFile(file.uuid)
 
+    const oldUuid = file.uuid
     const newUuid = await claudeUploadFile(file.fileName, file.filePath, newFileContent.fileContent)
     file.uuid = newUuid
     file.status = "synced"
     file.lastUpdated = Date.now()
 
-    resetFileElementContent(file)
+    resetFileElementContent(file, oldUuid)
     trackChange()
 })
 

@@ -1,23 +1,9 @@
 // SyncFileSection.ts
 
-import { getSyncedFilesFromClaude } from "../appService";
-import { resetChangeTracker } from "../changeTracker";
-import { fetchProjectDocs } from "../claudeApis";
 import { selectWorkspacePath } from "../fileUtils";
 import { getWorkspacePath, setWorkspacePath } from "../storageUtils";
-import { addFileElement, createFileList } from "./FileList";
+import { createFileList } from "./FileList";
 import { createHeader } from "./Header";
-
-const createReloadDescription = (): HTMLElement => {
-    const description = document.createElement('p');
-    description.className = 'sync-file-reload-description text-xs text-text-400 mt-2 mx-4 cursor-pointer hover:underline hidden';
-    description.textContent = 'Changes may not be reflected in Project Knowledge. Click here to reload the page and update data.';
-    description.onclick = () => {
-        resetChangeTracker();
-        window.location.reload();
-    };
-    return description;
-};
 
 export const createSyncFileSection = (): HTMLElement => {
     const section = document.createElement('div');
@@ -25,11 +11,14 @@ export const createSyncFileSection = (): HTMLElement => {
   
     const header = createHeader();
     const workspaceConfig = createWorkspaceConfig();
-    const fileList = createFileList();
   
     section.appendChild(header);
     section.appendChild(workspaceConfig);
-    section.appendChild(fileList);
+
+    if (getWorkspacePath()) {
+      const fileList = createFileList();
+      section.appendChild(fileList);
+    }
     return section;
   };
 

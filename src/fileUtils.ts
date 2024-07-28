@@ -67,6 +67,7 @@ export const checkFileStatuses = async (files: SyncedFile[]): Promise<Record<str
   return files.reduce((m: Record<string, SyncedFileStatus>, f) => {
     const r = resultById[f.uuid]
     m[f.uuid] = r?.exists === false ? 'deleted' : (r?.lastModified ?? 0) > f.lastUpdated ? 'changed' : 'synced'
+    console.log("[checkFileStatuses]", f.fileName, (r?.lastModified ?? 0), f.lastUpdated, m[f.uuid])
     return m
   }, {})
 };

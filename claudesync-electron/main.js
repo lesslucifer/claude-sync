@@ -85,7 +85,7 @@ function runServer() {
 
     app?.setActivationPolicy?.('regular')
     expressApp.get('/open-file', async (req, res) => {
-        try {
+        try { 
             app?.setActivationPolicy?.('regular')
             backgroundWindow?.focus({ steal: true })
             app.focus({ steal: true })

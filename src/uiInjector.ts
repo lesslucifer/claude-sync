@@ -16,9 +16,10 @@ const injectSyncFileSection = (): void => {
       syncFileSection.classList.add('sync-file-section');
       projectSectionElem?.parentNode?.insertBefore(syncFileSection, projectSectionElem);
 
-      loadSyncedFiles().catch()
-      checkForBrokenFiles();
-      startFileChecking();
+      loadSyncedFiles().then(() => {
+        checkForBrokenFiles();
+        startFileChecking();
+      }).catch()
     }
   });
 

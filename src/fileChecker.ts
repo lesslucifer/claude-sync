@@ -10,7 +10,7 @@ export const syncFileStatuses = async (): Promise<void> => {
     files.forEach(f => {
         const stt = fileStatuses[f.uuid] ?? 'synced'
         f.status = stt
-        resetFileElementContent(f)
+        resetFileElementContent(f, f.uuid)
     })
 };
 
@@ -28,7 +28,7 @@ export const checkForBrokenFiles = async (): Promise<void> => {
         for (const file of Object.values(syncedFiles)) {
             if (!projectDocUuids.has(file.uuid)) {
                 file.status = 'broken'
-                resetFileElementContent(file)
+                resetFileElementContent(file, file.uuid)
             }
         }
     } catch (error) {
