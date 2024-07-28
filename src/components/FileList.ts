@@ -1,6 +1,6 @@
 // FileList.ts
 
-import { deleteSyncFile, hardDeleteFiles, resyncFile } from '../appService';
+import { deleteSyncFile, resyncFile } from '../appService';
 import { formatRelativeTime } from '../helper';
 import { SyncedFile, SyncedFileStatus } from '../types';
 import { DeletedIcon, FileChangedIcon, ReloadIcon, TrashIcon } from './icons';
@@ -85,11 +85,7 @@ export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null
   const deleteButton = elem.querySelector('.delete-file-btn');
   if (deleteButton) {
     deleteButton.addEventListener('click', runWithLoading(elem, (event) => {
-      if ((event as MouseEvent).ctrlKey || (event as MouseEvent).metaKey) {
-        return hardDeleteFiles(file);
-      } else {
-        return deleteSyncFile(file)
-      }
+      return deleteSyncFile(file)
     }));
   }
 }

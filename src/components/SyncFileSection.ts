@@ -1,5 +1,6 @@
 // SyncFileSection.ts
 
+import { selectAndConfigureWorkspace } from "../appService";
 import { selectWorkspacePath } from "../fileUtils";
 import { getWorkspacePath, setWorkspacePath } from "../storageUtils";
 import { createFileList } from "./FileList";
@@ -24,21 +25,27 @@ export const createSyncFileSection = (): HTMLElement => {
 
 // Add this function
 const createWorkspaceConfig = (): HTMLElement => {
-    const container = document.createElement('div');
-    container.className = 'mx-4 my-2';
+  const container = document.createElement('div');
+  container.className = 'mx-4 my-2';
 
-    const workspacePath = getWorkspacePath();
-    if (!workspacePath) {
-        const button = document.createElement('button');
-        button.className = 'w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600';
-        button.textContent = 'Configure Workspace';
-        button.onclick = configureWorkspace;
-        container.appendChild(button);
-    } else {
-        const text = document.createElement('p');
-        text.className = 'text-sm text-gray-600';
-        text.textContent = `Workspace: ${workspacePath}`;
-        container.appendChild(text);
+  const workspacePath = getWorkspacePath();
+  if (!workspacePath) {
+      const button = document.createElement('button');
+      button.className = 'w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600';
+      button.textContent = 'Configure Workspace';
+      button.onclick = selectAndConfigureWorkspace;
+      container.appendChild(button);
+  } else {
+      const text = document.createElement('a');
+      text.className = 'text-sm text-blue-600 hover:underline cursor-pointer';
+      text.textContent = `Workspace: ${workspacePath}`;
+      text.onclick = (e) => {
+          if (e.ctrlKey || e.metaKey) {
+              e.preventDefault();
+              selectAndConfigureWorkspace();
+          }
+      };
+      container.appendChild(text);
   }
 
   return container;

@@ -1,9 +1,9 @@
 import { trackChange } from "./changeTracker";
 import { claudeDeleteFile, claudeUploadFile, fetchProjectDocs } from "./claudeApis";
-import { addFileElement, removeFileFromUI, resetFileElementContent } from "./components/FileList";
-import { readLocalFile, selectLocalFile } from "./fileUtils";
-import { errCover, getRelativePath, showConfirmationDialog } from "./helper";
-import { clearWorkspacePath, getWorkspacePath } from "./storageUtils";
+import { addFileElement, resetFileElementContent } from "./components/FileList";
+import { readLocalFile, selectLocalFile, selectWorkspacePath } from "./fileUtils";
+import { errCover, showConfirmationDialog } from "./helper";
+import { getWorkspacePath, setWorkspacePath } from "./storageUtils";
 import { SyncedFile } from "./types";
 
 export const getSyncedFilesFromClaude = async (): Promise<SyncedFile[]> => {
@@ -82,37 +82,16 @@ export const resyncFile = errCover(async (file: SyncedFile) => {
     trackChange()
 })
 
-export const hardDeleteFiles = errCover(async (file: SyncedFile) => {
-    if (!file) return;
-    const wsPath = getWorkspacePath()
-    if (!wsPath) throw new Error(`Cannot HARD delete files without Workspace configured!!`)
-
-    const shouldProceed = await showConfirmationDialog("Hard Resync", "This will delete all files with the same relative path to a file in the project. Are you sure you want to proceed?");
-    if (!shouldProceed) return;
-
-    const files = await getSyncedFilesFromClaude()
-    for (const file of files) {
-        if (getRelativePath(wsPath, file.filePath) === file.filePath) {
-            claudeDeleteFile(file.uuid).catch()
-            removeFileFromUI(file.uuid)
-            trackChange();
-        }
-    }
-});
-
-export const resetWorkspace = errCover(async () => {
-    const confirm = await showConfirmationDialog(
-        'Reset Project Workspace',
-        'This will delete all synced file information and reset the workspace for this project. Are you sure you want to proceed?'
+export const selectAndConfigureWorkspace = errCover(async () => {
+    const shouldProceed = await showConfirmationDialog(
+        'Change Workspace',
+        'Changing the workspace might affect all synced files. Are you sure you want to proceed?'
     );
-    if (!confirm) return
+    if (!shouldProceed) return
 
-
-    const files = await getSyncedFilesFromClaude()
-    for (const file of files) {
-        claudeDeleteFile(file.uuid).catch()
-    }
-
-    clearWorkspacePath();
+    const path = await selectWorkspacePath();
+    if (!path) return
+    
+    setWorkspacePath(path);
     location.reload();
 });

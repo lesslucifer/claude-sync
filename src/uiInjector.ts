@@ -1,6 +1,6 @@
 import { loadSyncedFiles } from './appService';
 import { createSyncFileSection } from './components/SyncFileSection';
-import { checkForBrokenFiles, startFileChecking } from './fileChecker';
+import { startFileChecking } from './fileChecker';
 
 let projectSectionElem: Element | null;
 
@@ -17,7 +17,6 @@ const injectSyncFileSection = (): void => {
       projectSectionElem?.parentNode?.insertBefore(syncFileSection, projectSectionElem);
 
       loadSyncedFiles().then(() => {
-        checkForBrokenFiles();
         startFileChecking();
       }).catch()
     }
