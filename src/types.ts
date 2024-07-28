@@ -9,12 +9,6 @@ export interface File {
 export type SyncedFileStatus = 'synced' | 'changed' | 'deleted' | 'broken'
 
 export interface SyncedFile extends File {
-    id: string;
     uuid: string;
     status: SyncedFileStatus;
 }
-
-export const createSyncedFile = (file: Omit<SyncedFile, 'id'>): SyncedFile => ({
-    ...file,
-    id: getRandomToken()
-});

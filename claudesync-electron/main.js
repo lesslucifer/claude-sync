@@ -83,18 +83,16 @@ function runServer() {
     expressApp.use(cors(corsOptions));
     expressApp.use(express.json());
 
-    let openFileCounter = 1;
     app?.setActivationPolicy?.('regular')
     expressApp.get('/open-file', async (req, res) => {
         try {
-            console.log(`[Start] Open file`, openFileCounter);
             app?.setActivationPolicy?.('regular')
             backgroundWindow?.focus({ steal: true })
             app.focus({ steal: true })
             const result = await dialog.showOpenDialog(backgroundWindow, {
-                properties: ['openFile']
+                properties: ['openFile'],
+                defaultPath: req.query?.rootFolder ?? ''
             });
-            console.log(`[End] Open file`, openFileCounter++);
 
             if (!result.canceled && result.filePaths.length > 0) {
                 const filePath = result.filePaths[0];
@@ -160,6 +158,28 @@ function runServer() {
             res.json(results);
         } catch (error) {
             res.status(500).json({ error: error.message });
+        }
+    });
+
+    expressApp.get('/select-workspace', async (req, res) => {
+        try {
+            app?.setActivationPolicy?.('regular')
+            backgroundWindow?.focus({ steal: true })
+            app.focus({ steal: true })
+            const result = await dialog.showOpenDialog(backgroundWindow, {
+                properties: ['openDirectory']
+            });
+
+            if (!result.canceled && result.filePaths.length > 0) {
+                res.json({ path: result.filePaths[0] });
+            } else {
+                res.status(400).json({ error: 'Workspace selection was canceled' });
+            }
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+        finally {
+            app?.setActivationPolicy?.('accessory')
         }
     });
 

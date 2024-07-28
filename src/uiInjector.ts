@@ -1,6 +1,5 @@
-import { getSyncedFiles } from './storageUtils';
+import { loadSyncedFiles } from './appService';
 import { createSyncFileSection } from './components/SyncFileSection';
-import { addFileElement } from './components/FileList';
 import { checkForBrokenFiles, startFileChecking } from './fileChecker';
 
 let projectSectionElem: Element | null;
@@ -13,11 +12,11 @@ const injectSyncFileSection = (): void => {
       obs.disconnect();
 
       projectSectionElem = uploadFileInput.parentNode?.parentElement;
-      const syncFileSection = createSyncFileSection();
+      const syncFileSection = createSyncFileSection()
       syncFileSection.classList.add('sync-file-section');
       projectSectionElem?.parentNode?.insertBefore(syncFileSection, projectSectionElem);
 
-      loadSyncedFiles();
+      loadSyncedFiles().catch()
       checkForBrokenFiles();
       startFileChecking();
     }
@@ -27,11 +26,6 @@ const injectSyncFileSection = (): void => {
     childList: true,
     subtree: true
   });
-};
-
-const loadSyncedFiles = (): void => {
-  const syncedFiles = getSyncedFiles();
-  Object.values(syncedFiles).forEach(file => addFileElement(file));
 };
 
 injectSyncFileSection();
