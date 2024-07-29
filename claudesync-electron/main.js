@@ -183,6 +183,17 @@ function runServer() {
         }
     });
 
+    expressApp.get('/open-workspace', (req, res) => {
+        const { shell } = require('electron');
+        const workspacePath = req.query.path;
+        if (workspacePath) {
+            shell.openPath(workspacePath);
+            res.json({ success: true });
+        } else {
+            res.status(400).json({ error: 'Workspace path is required' });
+        }
+    });
+
     server = expressApp.listen(port, () => {
         console.log(`Express server running at http://localhost:${port}`);
     });

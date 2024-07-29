@@ -80,3 +80,7 @@ export const selectWorkspacePath = errCover(async () => {
   const { path } = await response.json();
   return path;
 });
+
+export const openWorkspaceInFileExplorer = async (path: string): Promise<void> => {
+  await fetch(`http://localhost:38451/open-workspace?path=${encodeURIComponent(path)}`);
+};

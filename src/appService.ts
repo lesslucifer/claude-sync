@@ -83,12 +83,6 @@ export const resyncFile = errCover(async (file: SyncedFile) => {
 })
 
 export const selectAndConfigureWorkspace = errCover(async () => {
-    const shouldProceed = await showConfirmationDialog(
-        'Change Workspace',
-        'Changing the workspace might affect all synced files. Are you sure you want to proceed?'
-    );
-    if (!shouldProceed) return
-
     const path = await selectWorkspacePath();
     if (!path) return
     

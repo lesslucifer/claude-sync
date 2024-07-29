@@ -1,7 +1,7 @@
 // SyncFileSection.ts
 
 import { selectAndConfigureWorkspace } from "../appService";
-import { selectWorkspacePath } from "../fileUtils";
+import { openWorkspaceInFileExplorer, selectWorkspacePath } from "../fileUtils";
 import { getWorkspacePath, setWorkspacePath } from "../storageUtils";
 import { createFileList } from "./FileList";
 import { createHeader } from "./Header";
@@ -23,38 +23,31 @@ export const createSyncFileSection = (): HTMLElement => {
     return section;
   };
 
-// Add this function
-const createWorkspaceConfig = (): HTMLElement => {
-  const container = document.createElement('div');
-  container.className = 'mx-4 my-2';
-
-  const workspacePath = getWorkspacePath();
-  if (!workspacePath) {
+  const createWorkspaceConfig = (): HTMLElement => {
+    const container = document.createElement('div');
+    container.className = 'mx-4 my-2';
+  
+    const workspacePath = getWorkspacePath();
+    if (!workspacePath) {
       const button = document.createElement('button');
-      button.className = 'w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600';
+      button.className = 'w-full py-2 px-4 bg-blue-500 rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700';
       button.textContent = 'Configure Workspace';
       button.onclick = selectAndConfigureWorkspace;
       container.appendChild(button);
-  } else {
+    } else {
       const text = document.createElement('a');
-      text.className = 'text-sm text-blue-600 hover:underline cursor-pointer';
+      text.className = 'text-sm text-blue-600 dark:text-blue-400 hover:underline cursor-pointer';
       text.textContent = `Workspace: ${workspacePath}`;
       text.onclick = (e) => {
-          if (e.ctrlKey || e.metaKey) {
-              e.preventDefault();
-              selectAndConfigureWorkspace();
-          }
+        e.preventDefault();
+        if (e.ctrlKey || e.metaKey) {
+          selectAndConfigureWorkspace();
+        } else {
+          openWorkspaceInFileExplorer(workspacePath);
+        }
       };
       container.appendChild(text);
-  }
-
-  return container;
-};
-
-const configureWorkspace = async () => {
-  const path = await selectWorkspacePath();
-  if (path) {
-    setWorkspacePath(path);
-    location.reload();
-  }
-};
+    }
+  
+    return container;
+  };
