@@ -85,25 +85,29 @@ function runServer() {
 
     app?.setActivationPolicy?.('regular')
     expressApp.get('/open-file', async (req, res) => {
-        try { 
+        try {
             app?.setActivationPolicy?.('regular')
             backgroundWindow?.focus({ steal: true })
             app.focus({ steal: true })
+
+            const isSingleFileOnly = ('singleFile' in req.query)
+
             const result = await dialog.showOpenDialog(backgroundWindow, {
-                properties: ['openFile'],
+                properties: [
+                    'openFile',
+                    ...( isSingleFileOnly ? [] : ['multiSelections'])
+                ],
                 defaultPath: req.query?.rootFolder ?? ''
             });
 
             if (!result.canceled && result.filePaths.length > 0) {
-                const filePath = result.filePaths[0];
-                const fileName = path.basename(filePath);
-                const fileContent = await fs.readFile(filePath, 'utf-8');
+                const filesData = await Promise.all(result.filePaths.map(async (filePath) => {
+                    const fileName = path.basename(filePath);
+                    const fileContent = await fs.readFile(filePath, 'utf-8');
+                    return { filePath, fileName, fileContent };
+                }));
 
-                res.json({
-                    filePath,
-                    fileName,
-                    fileContent
-                });
+                res.json(filesData);
             } else {
                 res.status(400).json({ error: 'File selection was canceled' });
             }

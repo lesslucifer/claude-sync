@@ -4,27 +4,34 @@ import { SyncedFile, SyncedFileStatus } from './types';
 
 export const API_PORT = 38451;
 
+export interface ISelectLocalFileOptions {
+  singleFile: boolean
+}
+
 export interface ILocalFile {
   fileName: string,
   fileContent: string,
   filePath: string,
 }
 
-export const selectLocalFile = async (): Promise<ILocalFile> => {
+export const selectLocalFiles = async (opts?: ISelectLocalFileOptions): Promise<ILocalFile[]> => {
   const workspacePath = getWorkspacePath();
   if (!workspacePath) {
     throw new Error('Workspace path not configured');
   }
 
-  const response = await fetch(`http://127.0.0.1:${API_PORT}/open-file?rootFolder=${encodeURIComponent(workspacePath)}`);
-  if (!response.ok) {
-    throw new Error('Failed to open file');
+  const query: string[] = []
+  if (opts?.singleFile) {
+    query.push('singleFile')
   }
-  const data = await response.json();
-  return {
-    ...data,
-    filePath: data.filePath
-  };
+
+  const response = await fetch(`http://127.0.0.1:${API_PORT}/open-file?${query.join('&')}`);
+  if (!response.ok) {
+    throw new Error('Failed to open files');
+  }
+  
+  const data: ILocalFile[] = await response.json();
+  return data;
 }
 
 export const readLocalFile = async (file: SyncedFile): Promise<{ exists: boolean, fileContent: string }> => {

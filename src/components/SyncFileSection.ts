@@ -1,8 +1,8 @@
 // SyncFileSection.ts
 
 import { selectAndConfigureWorkspace } from "../appService";
-import { openWorkspaceInFileExplorer, selectWorkspacePath } from "../fileUtils";
-import { getWorkspacePath, setWorkspacePath } from "../storageUtils";
+import { openWorkspaceInFileExplorer } from "../fileUtils";
+import { getWorkspacePath } from "../storageUtils";
 import { createFileList } from "./FileList";
 import { createHeader } from "./Header";
 

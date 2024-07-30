@@ -1,10 +1,13 @@
 import { trackChange } from "./changeTracker";
 import { claudeDeleteFile, claudeUploadFile, fetchProjectDocs } from "./claudeApis";
-import { addFileElement, resetFileElementContent } from "./components/FileList";
-import { readLocalFile, selectLocalFile, selectWorkspacePath } from "./fileUtils";
-import { errCover, showConfirmationDialog } from "./helper";
+import { addFileElement, getFileElement, resetFileElementContent, updateFileList } from "./components/FileList";
+import { readLocalFile, selectLocalFiles, selectWorkspacePath } from "./fileUtils";
+import { errCover, normalizePath } from "./helper";
 import { getWorkspacePath, setWorkspacePath } from "./storageUtils";
 import { SyncedFile } from "./types";
+import { getAllFilesFromElement } from "./components/FileList";
+import { runWithLoadingElement } from "./components/uiHelper";
+
 
 export const getSyncedFilesFromClaude = async (): Promise<SyncedFile[]> => {
     const wsPath = getWorkspacePath()
@@ -27,19 +30,30 @@ export const getSyncedFilesFromClaude = async (): Promise<SyncedFile[]> => {
 export const loadSyncedFiles = async () => {
     const syncedFiles = await getSyncedFilesFromClaude();
     syncedFiles.forEach(file => addFileElement(file));
+    sortFiles('name')
 }
 
-export const selectAndUploadFile = errCover(async () => {
-    const localFile = await selectLocalFile();
-    const uuid = await claudeUploadFile(localFile.fileName, localFile.filePath, localFile.fileContent);
-    const file: SyncedFile = {
-        fileName: localFile.fileName,
-        filePath: localFile.filePath,
-        lastUpdated: Date.now(),
-        status: 'synced',
-        uuid: uuid
-    };
-    addFileElement(file);
+export const selectAndUploadFiles = errCover(async () => {
+    const existingFiles = getAllFilesFromElement();
+    const localFiles = await selectLocalFiles();
+    for (const localFile of localFiles) {
+        const normalizedLocalPath = normalizePath(localFile.filePath);
+        const existingFile = existingFiles.find(f => normalizePath(f.filePath) === normalizedLocalPath);
+        if (existingFile) {
+            // File already exists, update it instead of adding a new one
+            runWithLoadingElement(getFileElement(existingFile.uuid)!, () => resyncFile(existingFile))().catch();
+        } else {
+            const uuid = await claudeUploadFile(localFile.fileName, localFile.filePath, localFile.fileContent);
+            const file: SyncedFile = {
+                fileName: localFile.fileName,
+                filePath: localFile.filePath,
+                lastUpdated: Date.now(),
+                status: 'synced',
+                uuid: uuid
+            };
+            addFileElement(file);
+        }
+    }
     trackChange();
 });
 
@@ -57,13 +71,30 @@ export const resyncFile = errCover(async (file: SyncedFile) => {
     if (!newFileContent.exists || !newFileContent.fileContent) {
         await errCover(async () => {
             const oldUuid = file.uuid
-            const localFile = await selectLocalFile()
-            const uuid = await claudeUploadFile(localFile.fileName, localFile.filePath, localFile.fileContent)
-            claudeDeleteFile(file.uuid).catch()
-            file.filePath = localFile.filePath
-            file.fileName = localFile.fileName
-            file.uuid = uuid
-            file.status = "synced"
+            const localFiles = await selectLocalFiles({ singleFile: true })
+            if (!localFiles.length) return
+
+            const localFile = localFiles[0]
+            const existingFiles = getAllFilesFromElement();
+            const existingFile = existingFiles.find(f => f.filePath === localFile.filePath);
+
+            if (existingFile && existingFile.uuid !== file.uuid) {
+                // The selected file already exists in the synced files, but under a different UUID
+                await claudeDeleteFile(file.uuid).catch()
+                file.filePath = existingFile.filePath
+                file.fileName = existingFile.fileName
+                file.uuid = existingFile.uuid
+                file.status = existingFile.status
+                file.lastUpdated = existingFile.lastUpdated
+            } else {
+                const uuid = await claudeUploadFile(localFile.fileName, localFile.filePath, localFile.fileContent)
+                await claudeDeleteFile(file.uuid).catch()
+                file.filePath = localFile.filePath
+                file.fileName = localFile.fileName
+                file.uuid = uuid
+                file.status = "synced"
+                file.lastUpdated = Date.now()
+            }
             resetFileElementContent(file, oldUuid)
             trackChange()
         })()
@@ -89,3 +120,13 @@ export const selectAndConfigureWorkspace = errCover(async () => {
     setWorkspacePath(path);
     location.reload();
 });
+
+export const sortFiles = (sortBy: 'name' | 'date'): void => {
+    const files = getAllFilesFromElement();
+    if (sortBy === 'name') {
+        files.sort((a, b) => a.fileName.localeCompare(b.fileName));
+    } else {
+        files.sort((a, b) => b.lastUpdated - a.lastUpdated);
+    }
+    updateFileList(files);
+};

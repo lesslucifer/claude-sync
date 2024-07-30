@@ -104,10 +104,14 @@ export function showConfirmationDialog(title: string, message: string): Promise<
   });
 }
 
+export function normalizePath(path: string): string {
+  return path.replace(/\\/g, '/');
+}
+
 export const getRelativePath = (from: string, filePath: string): string => {
   // Normalize paths by replacing backslashes with forward slashes
-  const normalizedWorkspacePath = from.replace(/\\/g, '/');
-  const normalizedFilePath = filePath.replace(/\\/g, '/');
+  const normalizedWorkspacePath = normalizePath(from)
+  const normalizedFilePath = normalizePath(filePath)
 
   // Check if the file path starts with the workspace path
   if (normalizedFilePath.startsWith(normalizedWorkspacePath)) {

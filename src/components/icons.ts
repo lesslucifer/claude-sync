@@ -28,3 +28,5 @@ export const DeletedIcon = `
 export const FileChangedIcon = `
 <svg fill="#e1dd56" width="8px" height="8px" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg" stroke="#e1dd56"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M8.41,2.55,6,3.33,5.59,1A4.66,4.66,0,0,0,4.41,1L4,3.33,1.59,2.55A3.82,3.82,0,0,0,1,3.49L2.92,5,1,6.51a3.82,3.82,0,0,0,.59.94L4,6.67,4.41,9A4.66,4.66,0,0,0,5.59,9L6,6.67l2.37.78A3.69,3.69,0,0,0,9,6.51L7.08,5,9,3.49A3.82,3.82,0,0,0,8.41,2.55Z"></path> </g> </g></svg>
 `;
+
+export const SortIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-down"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`;

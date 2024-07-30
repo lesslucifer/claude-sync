@@ -1,7 +1,7 @@
 // Header.ts
 
-import { selectAndUploadFile } from "../appService";
-import { SyncIcon } from "./icons";
+import { selectAndUploadFiles, sortFiles } from "../appService";
+import { SortIcon, SyncIcon } from "./icons";
 import { createLoadingSpinner, runWithLoadingElement } from "./uiHelper";
 
 export const createHeader = (): HTMLElement => {
@@ -19,7 +19,14 @@ export const createHeader = (): HTMLElement => {
     header.appendChild(titleContainer);
 
     const addButton = createAddButton();
-    header.appendChild(addButton);
+    const sortButton = createSortButton();
+
+    const controlsContainer = document.createElement('div');
+    controlsContainer.className = 'flex items-center';
+    controlsContainer.appendChild(addButton);
+    controlsContainer.appendChild(sortButton);
+
+    header.appendChild(controlsContainer);
 
     return header;
 };
@@ -29,11 +36,53 @@ const addButtonClasses = "inline-flex items-center justify-center relative shrin
 const createAddButton = (): HTMLButtonElement => {
     const addButton = document.createElement('button');
     addButton.className = addButtonClasses;
-    addButton.textContent = 'Add File';
-    
+    addButton.textContent = 'Add Files';
+
     addButton.appendChild(createLoadingSpinner());
 
-    addButton.onclick = runWithLoadingElement(addButton, () => selectAndUploadFile())
+    addButton.onclick = runWithLoadingElement(addButton, () => selectAndUploadFiles())
 
     return addButton;
+};
+
+const createSortButton = (): HTMLElement => {
+    const sortContainer = document.createElement('div');
+    sortContainer.className = 'relative ml-2 z-10';
+
+    const sortButton = document.createElement('button');
+    sortButton.className = addButtonClasses;
+    sortButton.innerHTML = SortIcon;
+    sortButton.setAttribute('title', 'Sort files');
+
+    const dropdownContent = document.createElement('div');
+    dropdownContent.className = 'absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10';
+    dropdownContent.innerHTML = `
+    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md" data-sort="name">Sort by Name</a>
+    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md" data-sort="date">Sort by Date</a>
+    `;
+
+    sortButton.onclick = () => {
+        dropdownContent.classList.toggle('hidden');
+    };
+
+    dropdownContent.onclick = (e) => {
+        e.preventDefault();
+        const target = e.target as HTMLElement;
+        if (target.hasAttribute('data-sort')) {
+            const sortBy = target.getAttribute('data-sort') as 'name' | 'date';
+            sortFiles(sortBy);
+            dropdownContent.classList.add('hidden');
+        }
+    };
+
+    document.addEventListener('click', (e) => {
+        if (!sortContainer.contains(e.target as Node)) {
+            dropdownContent.classList.add('hidden');
+        }
+    });
+
+    sortContainer.appendChild(sortButton);
+    sortContainer.appendChild(dropdownContent);
+
+    return sortContainer;
 };

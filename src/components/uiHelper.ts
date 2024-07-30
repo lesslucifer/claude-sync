@@ -5,6 +5,8 @@ export const createLoadingSpinner = (): HTMLDivElement => {
 };
 
 export const runWithLoadingElement = <T extends (...args: any[]) => Promise<any>>(elem: Element, fn: T) => {
+    if (!elem) return fn
+
     return <T>(async (...args: any[]) => {
         const spinner = elem.querySelector('div.loading-spinner')
 

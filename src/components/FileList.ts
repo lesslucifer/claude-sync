@@ -93,3 +93,12 @@ export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null
 export const removeFileFromUI = (fileId: string): void => {
   getFileElement(fileId)?.remove()
 };
+
+export const updateFileList = (sortedFiles: SyncedFile[]): void => {
+  console.log('updateFileList', sortedFiles)
+  const fileListElement = document.querySelector('.sync-file-section ul');
+  if (fileListElement) {
+      fileListElement.innerHTML = '';
+      sortedFiles.forEach(file => addFileElement(file));
+  }
+};
