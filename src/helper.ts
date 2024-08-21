@@ -17,7 +17,7 @@ export const getOrganizationId = (): string => {
     const scripts = document.getElementsByTagName('script');
     for (const script of scripts) {
       const content = script.textContent || script.innerText;
-      const match = content.match(/\\"memberships\\":\[\{\\"organization\\":\{\\"uuid\\":\\"([^\\"]+)\\"/);
+      const match = content.match(/\\"memberships\\":\[\{\\"organization\\":\{.*\\"uuid\\":\\"([^\\"]+)\\"/);
       if (match && match[1]) {
         return match[1];
       }
