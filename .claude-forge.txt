@@ -1,0 +1,199 @@
+Filename: .gitignore
+Language: Unknown
+Lines of Code: 56
+Keywords: 
+
+Filename: claudesync-electron\icon.icns
+Language: Unknown
+Lines of Code: 234
+Keywords: 
+
+Filename: claudesync-electron\icon.ico
+Language: Unknown
+Lines of Code: 1
+Keywords: 
+
+Filename: claudesync-electron\icon.png
+Language: Unknown
+Lines of Code: 73
+Keywords: 
+
+Filename: claudesync-electron\index.html
+Language: HTML
+Lines of Code: 1
+Keywords: 
+
+Filename: claudesync-electron\install-service.js
+Language: JavaScript
+Lines of Code: 14
+Keywords: Service, svc
+
+Filename: claudesync-electron\install.bat
+Language: Unknown
+Lines of Code: 41
+Keywords: 
+
+Filename: claudesync-electron\install.sh
+Language: Unknown
+Lines of Code: 38
+Keywords: 
+
+Filename: claudesync-electron\main.js
+Language: JavaScript
+Lines of Code: 233
+Keywords: createTray, initWindow, runServer, setAppIcon, setupAutoLaunch
+
+Filename: claudesync-electron\package.json
+Language: JSON
+Lines of Code: 32
+Keywords: 
+
+Filename: claudesync-electron\service.js
+Language: JavaScript
+Lines of Code: 11
+Keywords: path
+
+Filename: claudesync-electron\start.bat
+Language: Unknown
+Lines of Code: 26
+Keywords: 
+
+Filename: claudesync-electron\tray-icon.png
+Language: Unknown
+Lines of Code: 21
+Keywords: 
+
+Filename: claudesync-electron\yarn.lock
+Language: Unknown
+Lines of Code: 1079
+Keywords: 
+
+Filename: package-lock.json
+Language: JSON
+Lines of Code: 2166
+Keywords: 
+
+Filename: package.json
+Language: JSON
+Lines of Code: 25
+Keywords: 
+
+Filename: public\icon.svg
+Language: Unknown
+Lines of Code: 15
+Keywords: 
+
+Filename: public\manifest.json
+Language: JSON
+Lines of Code: 34
+Keywords: 
+
+Filename: public\popup.html
+Language: HTML
+Lines of Code: 1
+Keywords: 
+
+Filename: README.md
+Language: Markdown
+Lines of Code: 3
+Keywords: 
+
+Filename: src\appService.ts
+Language: TypeScript
+Lines of Code: 132
+Keywords: deleteSyncFile, docs, existingFile, existingFiles, file
+
+Filename: src\background.ts
+Language: TypeScript
+Lines of Code: 8
+Keywords: 
+
+Filename: src\changeTracker.ts
+Language: TypeScript
+Lines of Code: 27
+Keywords: description, hideReloadDescription, resetChangeTracker, showReloadDescription, trackChange
+
+Filename: src\claudeApis.ts
+Language: TypeScript
+Lines of Code: 73
+Keywords: claudeDeleteFile, claudeUploadFile, data, docs, fetchProjectDocs
+
+Filename: src\components\FileList.ts
+Language: TypeScript
+Lines of Code: 104
+Keywords: addFileElement, createFileList, deleteButton, elems, fileList
+
+Filename: src\components\Header.ts
+Language: TypeScript
+Lines of Code: 88
+Keywords: addButton, addButtonClasses, controlsContainer, createAddButton, createHeader
+
+Filename: src\components\icons.ts
+Language: TypeScript
+Lines of Code: 32
+Keywords: DeletedIcon, FileChangedIcon, ReloadIcon, SortIcon, SyncIcon
+
+Filename: src\components\SyncFileSection.ts
+Language: TypeScript
+Lines of Code: 53
+Keywords: button, container, createSyncFileSection, createWorkspaceConfig, fileList
+
+Filename: src\components\uiHelper.ts
+Language: TypeScript
+Lines of Code: 52
+Keywords: createLoadingSpinner, loadingSpinner, runWithLoadingElement, spinner, style
+
+Filename: src\content.ts
+Language: TypeScript
+Lines of Code: 9
+Keywords: isClaudeProjectPage
+
+Filename: src\fileChecker.ts
+Language: TypeScript
+Lines of Code: 20
+Keywords: files, fileStatuses, startFileChecking, stt, syncFileStatuses
+
+Filename: src\fileUtils.ts
+Language: TypeScript
+Lines of Code: 93
+Keywords: ILocalFile, ISelectLocalFileOptions, API_PORT, checkFileStatuses, data
+
+Filename: src\helper.ts
+Language: TypeScript
+Lines of Code: 137
+Keywords: formatRelativeTime, getRandomToken, interpolateErrMessage, normalizePath, showConfirmationDialog
+
+Filename: src\popup.ts
+Language: TypeScript
+Lines of Code: 1
+Keywords: 
+
+Filename: src\storageUtils.ts
+Language: TypeScript
+Lines of Code: 60
+Keywords: addSyncedFile, clearWorkspacePath, getSyncedFiles, getWorkspacePath, newFile
+
+Filename: src\types.ts
+Language: TypeScript
+Lines of Code: 14
+Keywords: File, SyncedFile, SyncedFileStatus
+
+Filename: src\uiInjector.ts
+Language: TypeScript
+Lines of Code: 31
+Keywords: allUploadFileInputs, injectSyncFileSection, observer, syncFileSection, uploadFileInput
+
+Filename: tsconfig.json
+Language: JSON
+Lines of Code: 15
+Keywords: 
+
+Filename: webpack.config.js
+Language: JavaScript
+Lines of Code: 36
+Keywords: CopyPlugin, path
+
+Filename: yarn.lock
+Language: Unknown
+Lines of Code: 1123
+Keywords: 
