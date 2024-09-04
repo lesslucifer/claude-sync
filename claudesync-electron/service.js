@@ -5,7 +5,10 @@ fork(path.join(process.cwd(), "node_modules", "electron", "cli.js"), ["."], {
     shell: false,
     detached: true,
     windowsHide: false,
-    stdio: 'ignore'
+    stdio: 'ignore',
+    env: {
+        "NODE_OPTIONS": ""
+    }
 }).unref()
 
 process.exit()
