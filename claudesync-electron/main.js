@@ -31,28 +31,28 @@ function initWindow() {
     app?.setActivationPolicy?.('accessory')
 }
 
+async function forceFocus() {
+    app?.setActivationPolicy?.('regular')
+    backgroundWindow.setAlwaysOnTop(true);
+    backgroundWindow?.focus({ steal: true })
+    app.focus({ steal: true })
+    setTimeout(() => {
+        backgroundWindow.setAlwaysOnTop(false);
+        app?.setActivationPolicy?.('accessory')
+    }, 1000)
+}
+
 function createTray() {
     tray = new Tray(path.join(__dirname, 'tray-icon.png')); // Make sure to add a tray icon image
     const contextMenu = Menu.buildFromTemplate([
         {
-            label: 'Open', click: async () => {
-                try {
-                    app?.setActivationPolicy?.('regular')
-                    backgroundWindow?.focus({ steal: true })
-                    app.focus({ steal: true })
-                    await dialog.showOpenDialog(backgroundWindow, {
-                        properties: ['openFile']
-                    }).catch();
-                }
-                finally {
-                    app?.setActivationPolicy?.('accessory')
-                }
-            }
+            label: 'Focus', click: forceFocus
         },
         { label: 'Quit', click: () => app.quit() }
     ]);
     tray.setToolTip('ClaudeSync');
     tray.setContextMenu(contextMenu);
+    tray.on("double-click", forceFocus)
 }
 
 function setAppIcon() {
@@ -87,6 +87,7 @@ function runServer() {
     expressApp.get('/open-file', async (req, res) => {
         try {
             app?.setActivationPolicy?.('regular')
+            backgroundWindow.setAlwaysOnTop(true);
             backgroundWindow?.focus({ steal: true })
             app.focus({ steal: true })
 
@@ -95,7 +96,7 @@ function runServer() {
             const result = await dialog.showOpenDialog(backgroundWindow, {
                 properties: [
                     'openFile',
-                    ...( isSingleFileOnly ? [] : ['multiSelections'])
+                    ...(isSingleFileOnly ? [] : ['multiSelections'])
                 ],
                 defaultPath: req.query?.rootFolder ?? ''
             });
@@ -116,6 +117,7 @@ function runServer() {
         }
         finally {
             app?.setActivationPolicy?.('accessory')
+            backgroundWindow.setAlwaysOnTop(false);
         }
     });
 

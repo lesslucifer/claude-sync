@@ -1,6 +1,6 @@
 import { trackChange } from "./changeTracker";
 import { claudeDeleteFile, claudeUploadFile, fetchProjectDocs } from "./claudeApis";
-import { addFileElement, getFileElement, resetFileElementContent, updateFileList } from "./components/FileList";
+import { addFileElement, getFileElement, removeFileFromUI, resetFileElementContent, updateFileList } from "./components/FileList";
 import { readLocalFile, selectLocalFiles, selectWorkspacePath } from "./fileUtils";
 import { errCover, normalizePath } from "./helper";
 import { getWorkspacePath, setWorkspacePath } from "./storageUtils";
@@ -60,6 +60,7 @@ export const selectAndUploadFiles = errCover(async () => {
 export const deleteSyncFile = errCover(async (file: SyncedFile) => {
     if (file?.uuid) {
         await claudeDeleteFile(file.uuid)
+        removeFileFromUI(file.uuid)
     }
 })
 
