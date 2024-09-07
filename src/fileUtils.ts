@@ -79,6 +79,32 @@ export const checkFileStatuses = async (files: SyncedFile[]): Promise<Record<str
   }, {})
 };
 
+export const verifyFileChanges = async (files: SyncedFile[]): Promise<Record<string, boolean>> => {
+  const response = await fetch(`http://localhost:${API_PORT}/verify-file-changes`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      files: await Promise.all(files.map(async file => ({
+        id: file.uuid,
+        path: file.filePath,
+        content: file.content
+      })))
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to verify file changes');
+  }
+
+  const results = await response.json();
+  return results.reduce((m: Record<string, boolean>, r: any) => {
+    m[r.id] = r.hasChanged;
+    return m;
+  }, {});
+};
+
 export const selectWorkspacePath = errCover(async () => {
   const response = await fetch(`http://127.0.0.1:${API_PORT}/select-workspace`);
   if (!response.ok) {

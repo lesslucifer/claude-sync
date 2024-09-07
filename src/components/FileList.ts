@@ -36,6 +36,7 @@ export const getAllFilesFromElement = (): SyncedFile[] => {
       lastUpdated: Number(elem.getAttribute("lastUpdated")),
       status: (elem.getAttribute("status") as SyncedFileStatus) ?? 'synced',
       uuid: elem.getAttribute("uuid") ?? '',
+      content: elem.getAttribute("content") ?? ''
     })
   })
   return files
@@ -74,6 +75,7 @@ export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null
   elem.setAttribute("status", file.status)
   elem.setAttribute("fileName", file.fileName)
   elem.setAttribute("uuid", file.uuid)
+  elem.setAttribute("content", file.content)
 
   const reloadButton = elem.querySelector('.reload-file-btn');
   if (reloadButton) {

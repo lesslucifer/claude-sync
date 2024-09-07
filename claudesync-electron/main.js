@@ -167,6 +167,32 @@ function runServer() {
         }
     });
 
+    expressApp.post('/verify-file-changes', async (req, res) => {
+        try {
+            const files = req.body.files;
+            const results = await Promise.all(files.map(async (file) => {
+                try {
+                    const currentContent = await fs.readFile(file.path, 'utf-8');
+                    const hasChanged = currentContent !== file.content;
+                    return {
+                        id: file.id,
+                        hasChanged,
+                        exists: true
+                    };
+                } catch (error) {
+                    return {
+                        id: file.id,
+                        exists: false,
+                        hasChanged: false
+                    };
+                }
+            }));
+            res.json(results);
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    });
+
     expressApp.get('/select-workspace', async (req, res) => {
         try {
             app?.setActivationPolicy?.('regular')

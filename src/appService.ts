@@ -1,13 +1,12 @@
 import { trackChange } from "./changeTracker";
 import { claudeDeleteFile, claudeUploadFile, fetchProjectDocs } from "./claudeApis";
 import { addFileElement, getFileElement, removeFileFromUI, resetFileElementContent, updateFileList } from "./components/FileList";
-import { readLocalFile, selectLocalFiles, selectWorkspacePath } from "./fileUtils";
+import { readLocalFile, selectLocalFiles, selectWorkspacePath, verifyFileChanges } from "./fileUtils";
 import { errCover, normalizePath } from "./helper";
 import { getWorkspacePath, setWorkspacePath } from "./storageUtils";
 import { SyncedFile } from "./types";
 import { getAllFilesFromElement } from "./components/FileList";
 import { runWithLoadingElement } from "./components/uiHelper";
-
 
 export const getSyncedFilesFromClaude = async (): Promise<SyncedFile[]> => {
     const wsPath = getWorkspacePath()
@@ -15,14 +14,18 @@ export const getSyncedFilesFromClaude = async (): Promise<SyncedFile[]> => {
     
     const docs = await fetchProjectDocs()
     return docs.map((doc: any) => {
-        const headerMatch = doc.content.match(/\/\* CLAUDE_SYNC\nPath: (.+)\n/);
+        const content: string = doc.content ?? ''
+        const headerMatch = content.match(/\/\* CLAUDE_SYNC\nPath: (.+)\n/);
         const filePath = headerMatch ? headerMatch[1] : null;
+        const fileContentMatch = content.match(/\/\* CLAUDE_SYNC\nPath: [^\*]* \*\/\n\n\n/)
+        const fileContent = fileContentMatch ? content.substring(fileContentMatch[0].length) : content
         return <SyncedFile> {
             fileName: doc.file_name,
             filePath: filePath && [wsPath, filePath].join('/'),
             lastUpdated: new Date(doc.created_at).getTime(),
             status: 'synced',
-            uuid: doc.uuid
+            uuid: doc.uuid,
+            content: fileContent
         };
     }).filter(doc => !!doc.filePath);
 }
@@ -49,7 +52,8 @@ export const selectAndUploadFiles = errCover(async () => {
                 filePath: localFile.filePath,
                 lastUpdated: Date.now(),
                 status: 'synced',
-                uuid: uuid
+                uuid: uuid,
+                content: localFile.fileContent
             };
             addFileElement(file);
         }
