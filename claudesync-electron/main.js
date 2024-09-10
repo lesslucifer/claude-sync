@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const cors = require('cors');
 const AutoLaunch = require('auto-launch');
+const crypto = require('crypto');
 
 let tray = null;
 let backgroundWindow = null
@@ -81,7 +82,7 @@ function runServer() {
         optionsSuccessStatus: 200
     };
     expressApp.use(cors(corsOptions));
-    expressApp.use(express.json());
+    expressApp.use(express.json({ limit: '100mb' }));
 
     app?.setActivationPolicy?.('regular')
     expressApp.get('/open-file', async (req, res) => {
@@ -172,8 +173,9 @@ function runServer() {
             const files = req.body.files;
             const results = await Promise.all(files.map(async (file) => {
                 try {
-                    const currentContent = await fs.readFile(file.path, 'utf-8');
-                    const hasChanged = currentContent !== file.content;
+                    const fileContent = await fs.readFile(file.path, 'utf-8');
+                    const currentHash = crypto.createHash('sha256').update(fileContent).digest('hex');
+                    const hasChanged = currentHash !== file.contentHash;
                     return {
                         id: file.id,
                         hasChanged,
@@ -192,6 +194,7 @@ function runServer() {
             res.status(500).json({ error: error.message });
         }
     });
+
 
     expressApp.get('/select-workspace', async (req, res) => {
         try {

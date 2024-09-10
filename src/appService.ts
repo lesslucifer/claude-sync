@@ -7,6 +7,7 @@ import { getWorkspacePath, setWorkspacePath } from "./storageUtils";
 import { SyncedFile } from "./types";
 import { getAllFilesFromElement } from "./components/FileList";
 import { runWithLoadingElement } from "./components/uiHelper";
+import { updateSyncAllButtonVisibility } from "./components/Header";
 
 export const getSyncedFilesFromClaude = async (): Promise<SyncedFile[]> => {
     const wsPath = getWorkspacePath()
@@ -116,6 +117,7 @@ export const resyncFile = errCover(async (file: SyncedFile) => {
 
     resetFileElementContent(file, oldUuid)
     trackChange()
+    updateSyncAllButtonVisibility();
 })
 
 export const selectAndConfigureWorkspace = errCover(async () => {
@@ -134,4 +136,15 @@ export const sortFiles = (sortBy: 'name' | 'date'): void => {
         files.sort((a, b) => b.lastUpdated - a.lastUpdated);
     }
     updateFileList(files);
+};
+
+export const syncAllChangedFiles = async (): Promise<void> => {
+    const files = getAllFilesFromElement();
+    const changedFiles = files.filter(file => file.status === 'changed');
+
+    for (const file of changedFiles) {
+        await resyncFile(file);
+    }
+
+    updateSyncAllButtonVisibility();
 };

@@ -8,7 +8,7 @@ import { createLoadingSpinner, runWithLoadingElement as runWithLoading } from '.
 
 export const createFileList = (): HTMLUListElement => {
   const fileList = document.createElement('ul');
-  fileList.className = 'flex flex-col py-1 mx-4';
+  fileList.className = 'flex flex-col py-1 mx-4 fileList';
   return fileList;
 };
 
@@ -36,11 +36,13 @@ export const getAllFilesFromElement = (): SyncedFile[] => {
       lastUpdated: Number(elem.getAttribute("lastUpdated")),
       status: (elem.getAttribute("status") as SyncedFileStatus) ?? 'synced',
       uuid: elem.getAttribute("uuid") ?? '',
-      content: elem.getAttribute("content") ?? ''
+      content: fileContentCache.get(elem.getAttribute("uuid") ?? '') ?? ''
     })
   })
   return files
 }
+
+const fileContentCache = new Map<string, string>()
 
 export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null, elem?: HTMLElement) => {
   elem ??= getFileElement(oldUuid ?? file.uuid)
@@ -75,7 +77,7 @@ export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null
   elem.setAttribute("status", file.status)
   elem.setAttribute("fileName", file.fileName)
   elem.setAttribute("uuid", file.uuid)
-  elem.setAttribute("content", file.content)
+  fileContentCache.set(file.uuid, file.content)
 
   const reloadButton = elem.querySelector('.reload-file-btn');
   if (reloadButton) {

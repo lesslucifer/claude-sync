@@ -1,4 +1,5 @@
 import { loadSyncedFiles } from './appService';
+import { updateSyncAllButtonVisibility } from './components/Header';
 import { createSyncFileSection } from './components/SyncFileSection';
 import { startFileChecking } from './fileChecker';
 

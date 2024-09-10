@@ -1,7 +1,8 @@
 // Header.ts
 
-import { selectAndUploadFiles, sortFiles } from "../appService";
-import { SortIcon, SyncIcon } from "./icons";
+import { selectAndUploadFiles, sortFiles, syncAllChangedFiles } from "../appService";
+import { getAllFilesFromElement } from "./FileList";
+import { ReloadIcon, SortIcon, SyncIcon } from "./icons";
 import { createLoadingSpinner, runWithLoadingElement } from "./uiHelper";
 
 export const createHeader = (): HTMLElement => {
@@ -19,12 +20,12 @@ export const createHeader = (): HTMLElement => {
     header.appendChild(titleContainer);
 
     const addButton = createAddButton();
-    const sortButton = createSortButton();
+    const controlButton = createControlButtons();
 
     const controlsContainer = document.createElement('div');
     controlsContainer.className = 'flex items-center';
     controlsContainer.appendChild(addButton);
-    controlsContainer.appendChild(sortButton);
+    controlsContainer.appendChild(controlButton);
 
     header.appendChild(controlsContainer);
 
@@ -45,9 +46,9 @@ const createAddButton = (): HTMLButtonElement => {
     return addButton;
 };
 
-const createSortButton = (): HTMLElement => {
-    const sortContainer = document.createElement('div');
-    sortContainer.className = 'relative ml-2 z-10';
+const createControlButtons = (): HTMLElement => {
+    const controlContainer = document.createElement('div');
+    controlContainer.className = 'relative ml-2 z-10';
 
     const sortButton = document.createElement('button');
     sortButton.className = addButtonClasses;
@@ -76,13 +77,43 @@ const createSortButton = (): HTMLElement => {
     };
 
     document.addEventListener('click', (e) => {
-        if (!sortContainer.contains(e.target as Node)) {
+        if (!controlContainer.contains(e.target as Node)) {
             dropdownContent.classList.add('hidden');
         }
     });
 
-    sortContainer.appendChild(sortButton);
-    sortContainer.appendChild(dropdownContent);
+    controlContainer.appendChild(sortButton);
+    controlContainer.appendChild(dropdownContent);
 
-    return sortContainer;
+    const syncAllButton = createSyncAllButton();
+    controlContainer.appendChild(syncAllButton);
+
+    return controlContainer;
+};
+
+const createSyncAllButton = (): HTMLButtonElement => {
+    const syncAllButton = document.createElement('button');
+    syncAllButton.className = `${addButtonClasses} ml-2 hidden sync-all-button`;
+    syncAllButton.innerHTML = `${ReloadIcon}`;
+    syncAllButton.setAttribute('title', 'Sync all changed files');
+
+    syncAllButton.appendChild(createLoadingSpinner());
+
+    syncAllButton.onclick = () => {
+        const fileList = document.querySelector('.fileList')
+        console.log("FILE_LIST", fileList)
+        runWithLoadingElement(fileList!, () => syncAllChangedFiles())();
+    }
+
+    return syncAllButton;
+};
+
+export const updateSyncAllButtonVisibility = (): void => {
+    const syncAllButton = document.querySelector('.sync-all-button') as HTMLButtonElement;
+    if (!syncAllButton) return;
+
+    const files = getAllFilesFromElement();
+    const hasChangedFiles = files.some(file => file.status === 'changed');
+
+    syncAllButton.classList.toggle('hidden', !hasChangedFiles);
 };

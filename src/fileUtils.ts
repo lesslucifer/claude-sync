@@ -74,23 +74,23 @@ export const checkFileStatuses = async (files: SyncedFile[]): Promise<Record<str
   return files.reduce((m: Record<string, SyncedFileStatus>, f) => {
     const r = resultById[f.uuid]
     m[f.uuid] = r?.exists === false ? 'deleted' : (r?.lastModified ?? 0) > f.lastUpdated ? 'changed' : 'synced'
-    console.log("[checkFileStatuses]", f.fileName, (r?.lastModified ?? 0), f.lastUpdated, m[f.uuid])
     return m
   }, {})
 };
 
 export const verifyFileChanges = async (files: SyncedFile[]): Promise<Record<string, boolean>> => {
+  const filesBody = await Promise.all(files.map(async file => ({
+    id: file.uuid,
+    path: file.filePath,
+    contentHash: await calculateSHA256Hash(file.content)
+  })))
   const response = await fetch(`http://localhost:${API_PORT}/verify-file-changes`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      files: await Promise.all(files.map(async file => ({
-        id: file.uuid,
-        path: file.filePath,
-        content: file.content
-      })))
+      files: filesBody
     }),
   });
 
@@ -104,6 +104,16 @@ export const verifyFileChanges = async (files: SyncedFile[]): Promise<Record<str
     return m;
   }, {});
 };
+
+async function calculateSHA256Hash(content: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const sha256 = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return sha256
+}
+
 
 export const selectWorkspacePath = errCover(async () => {
   const response = await fetch(`http://127.0.0.1:${API_PORT}/select-workspace`);
