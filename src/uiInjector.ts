@@ -1,5 +1,4 @@
-import { loadSyncedFiles } from './appService';
-import { updateSyncAllButtonVisibility } from './components/Header';
+import { AppService } from './appService';
 import { createSyncFileSection } from './components/SyncFileSection';
 import { startFileChecking } from './fileChecker';
 
@@ -17,9 +16,9 @@ const injectSyncFileSection = (): void => {
       syncFileSection.classList.add('sync-file-section');
       projectSectionElem?.parentNode?.insertBefore(syncFileSection, projectSectionElem);
 
-      loadSyncedFiles().then(() => {
+      setTimeout(() => {
         startFileChecking();
-      }).catch()
+      }, 3000)
     }
   });
 

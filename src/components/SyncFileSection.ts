@@ -1,9 +1,9 @@
 // SyncFileSection.ts
 
-import { selectAndConfigureWorkspace } from "../appService";
+import { AppService } from "../appService";
 import { openWorkspaceInFileExplorer } from "../fileUtils";
 import { getWorkspacePath } from "../storageUtils";
-import { createFileList } from "./FileList";
+import { buildFolderTree, renderFolderTree } from "./FolderTree";
 import { createHeader } from "./Header";
 
 export const createSyncFileSection = (): HTMLElement => {
@@ -17,12 +17,15 @@ export const createSyncFileSection = (): HTMLElement => {
   section.appendChild(workspaceConfig);
 
   if (getWorkspacePath()) {
-    const fileListContainer = document.createElement('div');
-    fileListContainer.className = 'overflow-y-auto';
-    fileListContainer.style.maxHeight = '400px';
-    const fileList = createFileList();
-    fileListContainer.appendChild(fileList);
-    section.appendChild(fileListContainer);
+    const folderTreeContainer = document.createElement('div');
+    folderTreeContainer.id = 'folder-tree-container'
+    folderTreeContainer.className = 'overflow-y-auto';
+    folderTreeContainer.style.maxHeight = '400px';
+    AppService.getSyncedFilesFromClaude().then(files => {
+      AppService.FILES = files
+      buildFolderTree(files).forEach(node => folderTreeContainer.appendChild(renderFolderTree(node)))
+    })
+    section.appendChild(folderTreeContainer);
   }
   return section;
 };
@@ -36,7 +39,7 @@ const createWorkspaceConfig = (): HTMLElement => {
     const button = document.createElement('button');
     button.className = 'w-full py-2 px-4 bg-blue-500 rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700';
     button.textContent = 'Configure Workspace';
-    button.onclick = selectAndConfigureWorkspace;
+    button.onclick = () => AppService.selectAndConfigureWorkspace();
     container.appendChild(button);
   } else {
     const text = document.createElement('a');
@@ -45,7 +48,7 @@ const createWorkspaceConfig = (): HTMLElement => {
     text.onclick = (e) => {
       e.preventDefault();
       if (e.ctrlKey || e.metaKey) {
-        selectAndConfigureWorkspace();
+        AppService.selectAndConfigureWorkspace();
       } else {
         openWorkspaceInFileExplorer(workspacePath);
       }

@@ -105,7 +105,9 @@ export function showConfirmationDialog(title: string, message: string): Promise<
 }
 
 export function normalizePath(path: string): string {
-  return path.replace(/\\/g, '/');
+  path = path.replace(/\\/g, '/');
+  while (path.startsWith('/')) path = path.substring(1)
+  return path
 }
 
 export const getRelativePath = (from: string, filePath: string): string => {

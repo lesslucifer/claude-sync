@@ -1,7 +1,4 @@
-// Header.ts
-
-import { selectAndUploadFiles, sortFiles, syncAllChangedFiles } from "../appService";
-import { getAllFilesFromElement } from "./FileList";
+import { AppService } from "../appService";
 import { ReloadIcon, SortIcon, SyncIcon } from "./icons";
 import { createLoadingSpinner, runWithLoadingElement } from "./uiHelper";
 
@@ -41,7 +38,7 @@ const createAddButton = (): HTMLButtonElement => {
 
     addButton.appendChild(createLoadingSpinner());
 
-    addButton.onclick = runWithLoadingElement(addButton, () => selectAndUploadFiles())
+    addButton.onclick = runWithLoadingElement(addButton, () => AppService.selectAndUploadFiles())
 
     return addButton;
 };
@@ -49,71 +46,5 @@ const createAddButton = (): HTMLButtonElement => {
 const createControlButtons = (): HTMLElement => {
     const controlContainer = document.createElement('div');
     controlContainer.className = 'relative ml-2 z-10';
-
-    const sortButton = document.createElement('button');
-    sortButton.className = addButtonClasses;
-    sortButton.innerHTML = SortIcon;
-    sortButton.setAttribute('title', 'Sort files');
-
-    const dropdownContent = document.createElement('div');
-    dropdownContent.className = 'absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden z-10';
-    dropdownContent.innerHTML = `
-    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-t-md" data-sort="name">Sort by Name</a>
-    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-b-md" data-sort="date">Sort by Date</a>
-    `;
-
-    sortButton.onclick = () => {
-        dropdownContent.classList.toggle('hidden');
-    };
-
-    dropdownContent.onclick = (e) => {
-        e.preventDefault();
-        const target = e.target as HTMLElement;
-        if (target.hasAttribute('data-sort')) {
-            const sortBy = target.getAttribute('data-sort') as 'name' | 'date';
-            sortFiles(sortBy);
-            dropdownContent.classList.add('hidden');
-        }
-    };
-
-    document.addEventListener('click', (e) => {
-        if (!controlContainer.contains(e.target as Node)) {
-            dropdownContent.classList.add('hidden');
-        }
-    });
-
-    controlContainer.appendChild(sortButton);
-    controlContainer.appendChild(dropdownContent);
-
-    const syncAllButton = createSyncAllButton();
-    controlContainer.appendChild(syncAllButton);
-
     return controlContainer;
-};
-
-const createSyncAllButton = (): HTMLButtonElement => {
-    const syncAllButton = document.createElement('button');
-    syncAllButton.className = `${addButtonClasses} ml-2 hidden sync-all-button`;
-    syncAllButton.innerHTML = `${ReloadIcon}`;
-    syncAllButton.setAttribute('title', 'Sync all changed files');
-
-    syncAllButton.appendChild(createLoadingSpinner());
-
-    syncAllButton.onclick = () => {
-        const fileList = document.querySelector('.fileList')
-        console.log("FILE_LIST", fileList)
-        runWithLoadingElement(fileList!, () => syncAllChangedFiles())();
-    }
-
-    return syncAllButton;
-};
-
-export const updateSyncAllButtonVisibility = (): void => {
-    const syncAllButton = document.querySelector('.sync-all-button') as HTMLButtonElement;
-    if (!syncAllButton) return;
-
-    const files = getAllFilesFromElement();
-    const hasChangedFiles = files.some(file => file.status === 'changed');
-
-    syncAllButton.classList.toggle('hidden', !hasChangedFiles);
 };

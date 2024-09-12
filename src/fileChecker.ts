@@ -1,14 +1,15 @@
-import { getAllFilesFromElement as getAllFilesFromUIElement, resetFileElementContent } from './components/FileList';
-import { updateSyncAllButtonVisibility } from './components/Header';
+import { AppService } from './appService';
+import { resetFileElementContent } from './components/FolderTree';
 import { checkFileStatuses, verifyFileChanges } from './fileUtils';
 
 export const syncFileStatuses = async (): Promise<void> => {
-    const files = getAllFilesFromUIElement()
+    const files = AppService.getSyncedFiles()
     const fileStatuses = await checkFileStatuses(files);
 
     const potentiallyChangedFiles = files.filter(f => fileStatuses[f.uuid] === 'changed');
-    console.log('potentiallyChangedFiles', potentiallyChangedFiles)
     const actualChanges = await verifyFileChanges(potentiallyChangedFiles);
+
+    console.log("syncFileStatuses", potentiallyChangedFiles, actualChanges)
 
     files.forEach(f => {
         let status = fileStatuses[f.uuid] ?? 'synced';
@@ -16,13 +17,16 @@ export const syncFileStatuses = async (): Promise<void> => {
             status = 'synced';
             f.lastUpdated = Date.now()
         }
-        f.status = status;
-        resetFileElementContent(f, f.uuid)
+        
+        if (f.status !== status) {
+            f.status = status;
+            resetFileElementContent(f, f.uuid)
+        }
     })
-    updateSyncAllButtonVisibility();
 };
 
 export const startFileChecking = (): void => {
-    setInterval(syncFileStatuses, 2 * 60000); // Check every 2 minute
+    // setInterval(syncFileStatuses, 2 * 60000); // Check every 2 minute
+    setInterval(syncFileStatuses, 5000);
     syncFileStatuses(); // Initial check
 };
