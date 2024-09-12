@@ -26,7 +26,7 @@ export const syncFileStatuses = async (): Promise<void> => {
 };
 
 export const startFileChecking = (): void => {
-    // setInterval(syncFileStatuses, 2 * 60000); // Check every 2 minute
-    setInterval(syncFileStatuses, 5000);
+    setInterval(syncFileStatuses, 2 * 60000); // Check every 2 minute
+    // setInterval(syncFileStatuses, 5000);
     syncFileStatuses(); // Initial check
 };

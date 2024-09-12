@@ -37,7 +37,18 @@ export const buildFolderTree = (files: SyncedFile[]): TreeNode[] => {
         });
     });
 
-    return root.children
+    const sortNode = (node: TreeNode) => {
+        node.children.sort((a, b) => {
+            if (a.isFile === b.isFile) {
+                return a.name.localeCompare(b.name);
+            }
+            return a.isFile ? 1 : -1;
+        });
+        node.children.forEach(sortNode);
+    };
+    sortNode(root);
+
+    return root.children;
 };
 
 export const renderFolderTree = (node: TreeNode, level = 0): HTMLElement => {
@@ -72,7 +83,15 @@ export const addFileElement = (file: SyncedFile): void => {
 
         if (isFile) {
             const fileElement = createFileElement(file);
-            currentNode.appendChild(fileElement);
+            const insertIndex = Array.from(currentNode.children).findIndex(child => 
+                child.classList.contains('synced-file-element') && 
+                child.querySelector('.text-sm')!.textContent!.localeCompare(part) > 0
+            );
+            if (insertIndex === -1) {
+                currentNode.appendChild(fileElement);
+            } else {
+                currentNode.insertBefore(fileElement, currentNode.children[insertIndex]);
+            }
         } else {
             let folderNode = Array.from(currentNode.children).find(
                 child => child.querySelector('.folder-name')?.textContent === part
@@ -80,13 +99,20 @@ export const addFileElement = (file: SyncedFile): void => {
 
             if (!folderNode) {
                 folderNode = createFolderNode(part, path, currentLevel);
-                currentNode.appendChild(folderNode);
+                const insertIndex = Array.from(currentNode.children).findIndex(child => 
+                    child.classList.contains('folder-tree-node') && 
+                    child.querySelector('.folder-name')!.textContent!.localeCompare(part) > 0
+                );
+                if (insertIndex === -1) {
+                    currentNode.appendChild(folderNode);
+                } else {
+                    currentNode.insertBefore(folderNode, currentNode.children[insertIndex]);
+                }
             }
 
             currentNode = folderNode.querySelector('.folder-children') as HTMLElement;
             currentLevel++;
         }
-
     }
 };
 
@@ -210,7 +236,7 @@ export const updateFolderStatus = (folderNode: HTMLElement): void => {
 
     const statusIcon = folderNode.querySelector('.folder-status-icon') as HTMLElement;
     const reloadButton = folderNode.querySelector('.folder-reload-btn') as HTMLElement;
-    
+
     const hasChangedFiles = AppService.isFolderHasChangedFile(path)
 
     if (hasChangedFiles) {
@@ -235,7 +261,7 @@ export const resetFileElementContent = (file: SyncedFile, oldUuid: string | null
         if (node.classList.contains("folder-tree-node")) {
             updateFolderStatus(node);
         }
-        node = node?.parentElement 
+        node = node?.parentElement
     }
 };
 
